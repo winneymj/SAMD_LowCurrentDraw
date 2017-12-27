@@ -33,27 +33,26 @@ void buttonISR_M() //ISR for Middle button presses
 	enableInterrupts();
 }
 
+void waitForSync( void )
+{
+	while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY );
+}
+
+void waitForDFLL( void )
+{
+	while ( (SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY) == 0 );
+}
+
+#define GENERIC_CLOCK_GENERATOR_MAIN      (0u)
+
 void setup()
 {
-////	DSU->CTRL.reg = DSU_CTRL_SWRST;
-////	while ( (DSU->CTRL.reg & DSU_CTRL_SWRST) && (DSU->STATUSA.reg & DSU_STATUSA_DONE) );	/* Wait for reset to complete */
-	//
-	//// Software reset the GCLK module to ensure it is re-initialized correctly
-	//GCLK->CTRL.reg = GCLK_CTRL_SWRST;
-	//while ( (GCLK->CTRL.reg & GCLK_CTRL_SWRST) && (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) );	/* Wait for reset to complete */
-//
-	//RTC->MODE0.CTRL.reg = RTC_MODE0_CTRL_SWRST;
-////	while ( (RTC->MODE0.CTRL.reg & RTC_MODE0_CTRL_SWRST) && (RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) );	/* Wait for reset to complete */
-//
-	//RTC->MODE1.CTRL.reg = RTC_MODE1_CTRL_SWRST;
-	////while ( (RTC->MODE1->CTRL.reg & RTC_MODE1_CTRL_SWRST) && (RTC->MODE1->STATUS.reg & RTC_STATUS_SYNCBUSY) );	/* Wait for reset to complete */
-////
-	//RTC->MODE2.CTRL.reg = RTC_MODE2_CTRL_SWRST;
-	////while ( (RTC->MODE2->CTRL.reg & RTC_MODE2_CTRL_SWRST) && (RTC->MODE2->STATUS.reg & RTC_STATUS_SYNCBUSY) );	/* Wait for reset to complete */
-//
-	//EIC->CTRL.reg = EIC_CTRL_SWRST;
-	//while ( (EIC->CTRL.reg & EIC_CTRL_SWRST) && (EIC->STATUS.reg & EIC_STATUS_SYNCBUSY) );	/* Wait for reset to complete */
-	
+	// If using the DFLL then seems like processor cannot handle a 3V coin-cell as DFLL possibly needs more voltage..
+	// or maybe a BOD is happening.
+	// So to get this working the startup.c has been modified to add the default 8MHz reset startup setting which
+	// can handle voltage as low as 3V.
+
+
 	// Set LED pin to output.
 	pinMode(LEDX, OUTPUT);
 	
