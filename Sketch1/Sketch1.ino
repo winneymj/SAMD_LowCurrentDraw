@@ -41,27 +41,45 @@ void buttonISR_M() //ISR for Middle button presses
 
 #define GENERIC_CLOCK_GENERATOR_MAIN      (0u)
 
+/*
+ * \brief Function to configure Power Manager (PM)
+ * 
+ * This function configures the PM. The PM controls what synchronous
+ * clocks clocks are running and not. This configuration of the PM is the one used in
+ * the Power Consumption section in the data sheet. Some of the clocks in the clock masks
+ * used here are disabled by default but have been added to give an easy overview of what
+ * clocks are disabled and not.
+ */
+
+volatile uint32_t saved_APBCMASK;
+
+void disableWire(void)
+{
+	saved_APBCMASK = PM->APBCMASK.reg;
+	PM->APBCMASK.reg &= ~(PM_APBCMASK_SERCOM0 | PM_APBCMASK_SERCOM1);
+}
+
+void enableWire(void)
+{
+//	PM->APBCMASK.reg |= (PM_APBCMASK_SERCOM0);
+	PM->APBCMASK.reg = saved_APBCMASK;
+}
+
 void setup()
 {
 	// Set up communications
 	Wire.begin();
 	
 	// Disable the RTC interrupts for the moment.
-	//MyDS3232.alarmInterrupt(ALARM_1, false);
-	//MyDS3232.alarmInterrupt(ALARM_2, false);
+	MyDS3232.alarmInterrupt(ALARM_1, false);
+	MyDS3232.alarmInterrupt(ALARM_2, false);
 
 	// Will finally set to one minute.
-	//MyDS3232.setAlarm(ALM2_EVERY_MINUTE, 0, 0, 0);
-	//MyDS3232.alarmInterrupt(ALARM_2, true);
+	MyDS3232.setAlarm(ALM2_EVERY_MINUTE, 0, 0, 0);
+	MyDS3232.alarmInterrupt(ALARM_2, true);
 
 	// Enable 32Khz output on pin 1
-//	MyDS3232.writeRTC(RTC_STATUS, MyDS3232.readRTC(RTC_STATUS) | _BV(EN32KHZ));
-
-	// If using the DFLL then seems like processor cannot handle a 3V coin-cell as DFLL possibly needs more voltage..
-	// or maybe a BOD is happening.
-	// So to get this working the startup.c has been modified to add the default 8MHz reset startup setting which
-	// can handle voltage as low as 3V.
-
+	MyDS3232.writeRTC(RTC_STATUS, MyDS3232.readRTC(RTC_STATUS) | _BV(EN32KHZ));
 
 	// Set LED pin to output.
 	pinMode(LED, OUTPUT);
@@ -96,14 +114,18 @@ void loop()
 		// and we want to deepsleep.
 		uint8_t stat = MyDS3232.alarm(ALARM_2);
 
+		// Power down the I2C (SERCOM0) to reduce power while sleeping
+		disableWire();
+
 		__DSB();
 		__WFI();
 
+		// Power up the I2C (SERCOM0) comms
+		enableWire();
+
 		// Enable SysTick IRQ and SysTick Timer
 		SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
-		
-		uint32_t ints = EIC->INTFLAG.reg;
-		
+
 		for (int j = 0; j < 4; j++)
 		{
 			digitalWrite(LED, HIGH);
