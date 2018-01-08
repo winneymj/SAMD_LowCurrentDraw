@@ -11,8 +11,6 @@
 #include <Time.h>         //http://www.arduino.cc/playground/Code/Time
 #include <TimeLib.h>         //http://www.arduino.cc/playground/Code/Time
 #include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SharpMem.h>
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
 #include "defs.h"
 #include "stringUtils.h"
@@ -113,6 +111,6 @@ void timeDateDisplay::displayLocalTemp(float temp)
 
 void timeDateDisplay::displayTemp(float temp)
 {
-	displayTemp((_tempType == fahrenheit) ? CtoF(temp) : temp);
+	displayLocalTemp((_tempType == fahrenheit) ? CtoF(temp) : temp);
 }
 

@@ -10,26 +10,27 @@
 
 #include <Time.h>         //http://www.arduino.cc/playground/Code/Time
 #include <TimeLib.h>         //http://www.arduino.cc/playground/Code/Time
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SharpMem.h>
-#include <Watch_Menu.h>
-#include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
-#include <RTCx.h>         // https://github.com/stevemarple/RTCx
+//#include <Wire.h>
+//#include <Adafruit_GFX.h>
+//#include <Adafruit_SharpMem.h>
+//#include <Watch_Menu.h>
+//#include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
+//#include <RTCx.h>         // https://github.com/stevemarple/RTCx
 
 #include "defs.h"
 #include "stringUtils.h"
 #include "timeDateDisplay.h"
 #include "arialn26pt7b.h"
 #include "courbd6pt7b.h"
+#include "watchface.h"
 
-extern void printCenterString(char *str, bool inverted);
-extern void printCenterString(char *str);
+//extern void printCenterString(char *str, bool inverted);
+//extern void printCenterString(char *str);
 
-extern Adafruit_SharpMem display;
-extern DS3232RTC MyDS3232;
-extern bool invert;
-extern eTempConversion tempType = centigrade;
+//extern Adafruit_SharpMem display;
+//extern DS3232RTC MyDS3232;
+//extern bool invert;
+//extern eTempConversion tempType = centigrade;
 
 //void displayLongDate(tmElements_t currTime)
 //{
@@ -80,23 +81,32 @@ extern eTempConversion tempType = centigrade;
 	//display.print((tempType == fahrenheit) ? 'F' : 'C');
 //}
 
-void displayTime()
+WatchFace::WatchFace(Adafruit_SharpMem& display, DS3232RTC& ds3232RTC) : _display(display), _ds3232RTC(ds3232RTC), _invert(false)
+{
+}
+
+void WatchFace::invert(bool invert)
+{
+	_invert = invert;
+}
+
+void WatchFace::displayTime()
 {
 	// Get the time from the RTC
 	tmElements_t currTime;
-	MyDS3232.read(currTime);
+	_ds3232RTC.read(currTime);
 
-	int initTemp = MyDS3232.temperature();
+	int initTemp = _ds3232RTC.temperature();
 	float temp = initTemp / 4.0;
 
 	// Clear down entire screen
-	display.fillRect(0, 0, display.width(), display.height() / 2, invert ? BLACK : WHITE);
+	_display.fillRect(0, 0, _display.width(), _display.height() / 2, _invert ? BLACK : WHITE);
 
 	// Update the display
-	timeDateDisplay* disp = new timeDateDisplay(display);
+	timeDateDisplay* disp = new timeDateDisplay(_display);
 	disp->setFont(&arialn26pt7b);
 	disp->setDateFont(&courbd6pt7b);
-	disp->invert(invert);
+	disp->invert(_invert);
 	disp->displayDateTime(currTime);
 	
 //	displayTime(currTime);

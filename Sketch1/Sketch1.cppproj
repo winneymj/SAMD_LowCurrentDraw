@@ -457,6 +457,9 @@
     <Compile Include="watchface.cpp">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="watchface.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="__vm\.Sketch1.vsarduino.h">
       <SubType>compile</SubType>
     </Compile>

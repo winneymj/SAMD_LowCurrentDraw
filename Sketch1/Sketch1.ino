@@ -12,33 +12,19 @@
 #include <RTCx.h>         // https://github.com/stevemarple/RTCx
 #include <Adafruit_GFX.h>
 #include <Adafruit_SharpMem.h>
-
-#define SCK 19
-#define MOSI 18
-#define SS 23
-#define EXTMODE 28
-
-#define LED 6
-#define MBUT 4
-#define UBUT 14
-#define DBUT 22
-#define RTC_INT 9
-
-#define BLACK 0
-#define WHITE 1
-#define INVERSE 2
+#include "defs.h"
+#include "watchface.h"
 
 //extern void displayMenu();
 //extern void initializeMenu();
 //extern WatchMenu menu;
-extern void displayTime();
+//extern void displayTime();
 extern void displayCalendar();
 
-#define EVERY_MINUTE
-
-Adafruit_SharpMem display(SCK, MOSI, SS);
+Adafruit_SharpMem display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS);
 DS3232RTC MyDS3232;
 RTCx MCP7941;
+WatchFace *watchFace = nullptr;
 
 volatile boolean rtcFired = false; //variables in ISR need to be volatile
 volatile boolean pinValM = false;
@@ -153,8 +139,8 @@ void initializePins()
 	pinMode(LED, OUTPUT);
 
 	// RTC square wave VCOM at 1Hz
-	pinMode(EXTMODE, OUTPUT); //VCOM Mode (h=ext l=sw)
-	digitalWrite(EXTMODE, HIGH); // switch VCOM to external
+	pinMode(DISPLAY_EXTMODE, OUTPUT); //VCOM Mode (h=ext l=sw)
+	digitalWrite(DISPLAY_EXTMODE, HIGH); // switch VCOM to external
 }
 
 void initializeRTC()
@@ -214,7 +200,7 @@ bool updateDisplay()
 		// write it all.
 		display.clearDisplayBuffer();
 
-		displayTime();
+		watchFace->displayTime();
 
 		displayCalendar();
 		
@@ -274,6 +260,9 @@ void setup()
 	
 	enableInterrupts();
 
+	// Create instance of the watches face
+	watchFace = new WatchFace(display, MyDS3232);
+
 	// Display something the first time
 	rtcFired = true;
 	updateDisplay();
@@ -284,7 +273,7 @@ void loop()
 	while (1)
 	{
 		// Before we sleep set the VCOM to external, the 1Hz VCOM signal
-		digitalWrite(EXTMODE, HIGH); // switch VCOM to external
+		digitalWrite(DISPLAY_EXTMODE, HIGH); // switch VCOM to external
 		
 		// Disable SysTick timer (enables delay/time functions).. 
 		// causes interrupt that wakes the processor...may be a diff way to disable via clocks...not sure
@@ -311,7 +300,7 @@ void loop()
 		SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 
 		// If we got here we were woken up by interrupt
-		digitalWrite(EXTMODE, LOW); // switch VCOM to software.
+		digitalWrite(DISPLAY_EXTMODE, LOW); // switch VCOM to software.
 
 		for (int j = 0; j < 4; j++)
 		{

@@ -10,6 +10,8 @@
 #include <Time.h>         //http://www.arduino.cc/playground/Code/Time
 #include <TimeLib.h>         //http://www.arduino.cc/playground/Code/Time
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
+#include <Adafruit_GFX.h>
+#include <Adafruit_SharpMem.h>
 #include "defs.h"
 
 class Adafruit_SharpMem;
