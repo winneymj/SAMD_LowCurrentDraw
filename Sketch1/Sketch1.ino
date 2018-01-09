@@ -15,16 +15,10 @@
 #include "defs.h"
 #include "watchface.h"
 
-//extern void displayMenu();
-//extern void initializeMenu();
-//extern WatchMenu menu;
-//extern void displayTime();
-extern void displayCalendar();
-
 Adafruit_SharpMem display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS);
-DS3232RTC MyDS3232;
+DS3232RTC ds3232RTC;
 RTCx MCP7941;
-WatchFace *watchFace = nullptr;
+WatchFace watchFace(display, ds3232RTC);
 
 volatile boolean rtcFired = false; //variables in ISR need to be volatile
 volatile boolean pinValM = false;
@@ -146,8 +140,8 @@ void initializePins()
 void initializeRTC()
 {
 	// Disable the RTC interrupts for the moment.
-	MyDS3232.alarmInterrupt(ALARM_1, false);
-	MyDS3232.alarmInterrupt(ALARM_2, false);
+	ds3232RTC.alarmInterrupt(ALARM_1, false);
+	ds3232RTC.alarmInterrupt(ALARM_2, false);
 
 	// Attach button and RTC interrupt routine to the pins.
 	attachInterrupt(digitalPinToInterrupt(MBUT), buttonISR_M, LOW); // when button B is pressed display
@@ -158,16 +152,16 @@ void initializeRTC()
 	// Set RTC to interrupt every second for now just to make sure it works.
 	// Will finally set to one minute.
 	#ifdef EVERY_SECOND
-	MyDS3232.setAlarm(ALM1_EVERY_SECOND, 0, 0, 0);
-	MyDS3232.alarmInterrupt(ALARM_1, true);
+	ds3232RTC.setAlarm(ALM1_EVERY_SECOND, 0, 0, 0);
+	ds3232RTC.alarmInterrupt(ALARM_1, true);
 	#endif
 	#ifdef EVERY_MINUTE
-	MyDS3232.setAlarm(ALM2_EVERY_MINUTE, 0, 0, 0);
-	MyDS3232.alarmInterrupt(ALARM_2, true);
+	ds3232RTC.setAlarm(ALM2_EVERY_MINUTE, 0, 0, 0);
+	ds3232RTC.alarmInterrupt(ALARM_2, true);
 	#endif
 
 	// Enable 32Khz output on pin 1
-	MyDS3232.writeRTC(RTC_STATUS, MyDS3232.readRTC(RTC_STATUS) | _BV(EN32KHZ));
+	ds3232RTC.writeRTC(RTC_STATUS, ds3232RTC.readRTC(RTC_STATUS) | _BV(EN32KHZ));
 
 	// The address used by the DS1307 is also used by other devices (eg
 	// MCP3424 ADC). Test for a MCP7941x device first.
@@ -200,16 +194,16 @@ bool updateDisplay()
 		// write it all.
 		display.clearDisplayBuffer();
 
-		watchFace->displayTime();
+		watchFace.displayTime();
 
-		displayCalendar();
+		watchFace.displayCalendar();
 		
 		// Clear the alarm interrupt
 #ifdef EVERY_SECOND
-		MyDS3232.alarm(ALARM_1);
+		ds3232RTC.alarm(ALARM_1);
 #endif
 #ifdef EVERY_MINUTE
-		MyDS3232.alarm(ALARM_2);
+		ds3232RTC.alarm(ALARM_2);
 #endif
 
 		display.refresh();
@@ -260,9 +254,6 @@ void setup()
 	
 	enableInterrupts();
 
-	// Create instance of the watches face
-	watchFace = new WatchFace(display, MyDS3232);
-
 	// Display something the first time
 	rtcFired = true;
 	updateDisplay();
@@ -282,7 +273,7 @@ void loop()
 		// Clear the alarm interrupt in the RTC, else we will never wake up from sleep.
 		// Very strange happening that only exhibits self when interrupt trigger is LOW.
 		// and we want to deepsleep.
-		uint8_t stat = MyDS3232.alarm(ALARM_2);
+		uint8_t stat = ds3232RTC.alarm(ALARM_2);
 
 		// Power down the I2C (SERCOM0) to reduce power while sleeping
 		disableWire();

@@ -16,10 +16,10 @@
 
 class Adafruit_SharpMem;
 
-class timeDateDisplay
+class TimeDateDisplay
 {
 public:
-	timeDateDisplay(Adafruit_SharpMem& display);
+	TimeDateDisplay(Adafruit_SharpMem& display);
 	void displayDateTime(tmElements_t currTime);
 	void displayTemp(float temp);
 	void setTemp(float temp);

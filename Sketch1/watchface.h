@@ -15,6 +15,7 @@ class WatchFace
 public:	
 	WatchFace(Adafruit_SharpMem& display, DS3232RTC& ds3232RTC);
 	void displayTime();
+	void displayCalendar();
 	void invert(bool invert);
 
 private:

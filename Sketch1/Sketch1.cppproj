@@ -415,7 +415,10 @@
     <Compile Include="arialn26pt7b.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="calendar.cpp">
+    <Compile Include="Calendar.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Calendar.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="cour6pt7b.h">
@@ -448,16 +451,16 @@
     <Compile Include="stringUtils.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="timeDateDisplay.cpp">
+    <Compile Include="TimeDateDisplay.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="timeDateDisplay.h">
+    <Compile Include="TimeDateDisplay.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="watchface.cpp">
+    <Compile Include="Watchface.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="watchface.h">
+    <Compile Include="Watchface.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="__vm\.Sketch1.vsarduino.h">

@@ -16,41 +16,41 @@
 #include "stringUtils.h"
 #include "timeDateDisplay.h"
 
-timeDateDisplay::timeDateDisplay(Adafruit_SharpMem& display) : _invert(false), _display(display), _font(NULL)
+TimeDateDisplay::TimeDateDisplay(Adafruit_SharpMem& display) : _invert(false), _display(display), _font(NULL)
 {
 }
 
-void timeDateDisplay::setFont(const GFXfont* font)
+void TimeDateDisplay::setFont(const GFXfont* font)
 {
 	_font = font;	
 }
 
-void timeDateDisplay::setDateFont(const GFXfont* font)
+void TimeDateDisplay::setDateFont(const GFXfont* font)
 {
 	_dateFont = font;
 }
 
-void timeDateDisplay::setTempFont(const GFXfont* font)
+void TimeDateDisplay::setTempFont(const GFXfont* font)
 {
 	_tempFont = font;
 }
 
-void timeDateDisplay::setTempDegreeFont(const GFXfont* font)
+void TimeDateDisplay::setTempDegreeFont(const GFXfont* font)
 {
 	_tempDegreeFont = font;
 }
 
-void timeDateDisplay::setTempType(eTempConversion type)
+void TimeDateDisplay::setTempType(eTempConversion type)
 {
 	_tempType = type;
 }
 
-void timeDateDisplay::invert(bool invert)
+void TimeDateDisplay::invert(bool invert)
 {
 	_invert = invert;
 }
 
-void timeDateDisplay::displayLongDate(tmElements_t currTime)
+void TimeDateDisplay::displayLongDate(tmElements_t currTime)
 {
 	_display.setTextSize(1);
 	_display.setFont(_dateFont);
@@ -63,7 +63,7 @@ void timeDateDisplay::displayLongDate(tmElements_t currTime)
 	stringUtils::printCenterString(_display, _invert, timeBuff);
 }
 
-void timeDateDisplay::displayTime(tmElements_t currTime)
+void TimeDateDisplay::displayTime(tmElements_t currTime)
 {
 	_display.setTextSize(1);
 	_display.setFont(_font);
@@ -81,7 +81,7 @@ void timeDateDisplay::displayTime(tmElements_t currTime)
 	_display.print(timeBuff);
 }
 
-void timeDateDisplay::displayDateTime(tmElements_t currTime)
+void TimeDateDisplay::displayDateTime(tmElements_t currTime)
 {
 	// Clear down entire screen
 	_display.fillRect(0, 0, _display.width(), _display.height() / 2, _invert ? BLACK : WHITE);
@@ -90,7 +90,7 @@ void timeDateDisplay::displayDateTime(tmElements_t currTime)
 	displayLongDate(currTime);
 }
 
-void timeDateDisplay::displayLocalTemp(float temp)
+void TimeDateDisplay::displayLocalTemp(float temp)
 {
 	_display.setTextSize(1);
 	_display.setFont(_tempFont);
@@ -109,7 +109,7 @@ void timeDateDisplay::displayLocalTemp(float temp)
 }
 
 
-void timeDateDisplay::displayTemp(float temp)
+void TimeDateDisplay::displayTemp(float temp)
 {
 	displayLocalTemp((_tempType == fahrenheit) ? CtoF(temp) : temp);
 }

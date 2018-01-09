@@ -2,10 +2,10 @@
 #define _DEFS_H
 
 
-#define SCK 19
-#define MOSI 18
-#define SS 23
-#define EXTMODE 28
+#define DISPLAY_SCK 19
+#define DISPLAY_MOSI 18
+#define DISPLAY_SS 23
+#define DISPLAY_EXTMODE 28
 
 
 // Button pins
@@ -61,6 +61,41 @@ const char shortMonths[12][4] PROGMEM = {
 	"Oct",
 	"Nov",
 	"Dec",
+};
+
+const char dayOfWeek[7][2] PROGMEM = {
+	"M",
+	"T",
+	"W",
+	"T",
+	"F",
+	"S",
+	"S"
+};
+
+const char dayOfWeekLong[7][4] PROGMEM = {
+	"Mon",
+	"Tue",
+	"Wed",
+	"Thu",
+	"Fri",
+	"Sat",
+	"Sun"
+};
+
+const uint8_t dayInMonth[12] PROGMEM = {
+	31, //Jan
+	29, //Feb
+	31, //Mar
+	30, //Apr
+	31, //May
+	30, //June
+	31, //July
+	31, //Aug
+	30, //Sept
+	31, //Oct
+	30, //Nov
+	31, //Dec
 };
 
 enum eTempConversion { fahrenheit, centigrade };
