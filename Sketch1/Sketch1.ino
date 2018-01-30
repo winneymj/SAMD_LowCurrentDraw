@@ -12,13 +12,23 @@
 #include <RTCx.h>         // https://github.com/stevemarple/RTCx
 #include <Adafruit_GFX.h>
 #include <Adafruit_SharpMem.h>
+#include <Watch_Menu.h>
 #include "defs.h"
 #include "watchface.h"
+
+#ifndef __AVR__
+#include <SPI.h>
+#endif
+	
+extern WatchMenu menu;
+extern void initializeMenu();
+extern void displayMenu();
 
 Adafruit_SharpMem display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS);
 DS3232RTC ds3232RTC;
 RTCx MCP7941;
 WatchFace watchFace(display, ds3232RTC);
+WatchMenu *currentMenu = &menu;
 
 volatile boolean rtcFired = false; //variables in ISR need to be volatile
 volatile boolean pinValM = false;
@@ -104,21 +114,109 @@ void enableWire(void)
 	PM->APBCMASK.reg = saved_APBCMASK;
 }
 
+/**
+ * \brief Function to turn of the BOD33 detector.
+ *
+ * The Configuration described in the Power Consumption section in the data sheet
+ * has the BOD33 off this function turns the BOD33 off.
+ */
+
+void turn_off_bod33(void)
+{
+	SYSCTRL->BOD33.reg = 0;
+}
+
+void configureInternalDFLL()
+{
+  ///* Disable the DFLL */
+  //SYSCTRL->DFLLCTRL.reg &= ~SYSCTRL_DFLLCTRL_ENABLE ;
+  //while ( (SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY) == 0 );
+ 
+  SYSCTRL->DFLLCTRL.bit.RUNSTDBY = 0;
+
+  /* Enable the DFLL */
+  SYSCTRL->DFLLCTRL.reg |= SYSCTRL_DFLLCTRL_ENABLE ;
+  while ( (SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY) == 0 );
+  
+  /** change the NVM controllers flash wait states according to the table in the SAMD21 datasheet */
+  NVMCTRL->CTRLB.bit.RWS = 3;
+	
+}
+
 void configure8Mhz()
 {
-	/* Modify PRESCaler value of OSC8M to have 8MHz */
-	SYSCTRL->OSC8M.bit.PRESC = SYSCTRL_OSC8M_PRESC_0_Val ;  // recent versions of CMSIS from Atmel changed the prescaler defines
+  /* configure internal 8MHz oscillator to run without prescaler */
+  SYSCTRL->OSC8M.bit.PRESC = 0;
+  SYSCTRL->OSC8M.bit.ONDEMAND = 0;
+  SYSCTRL->OSC8M.bit.RUNSTDBY = 0;
+  SYSCTRL->OSC8M.bit.ENABLE = 1;
+  while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_OSC8MRDY)) {}
 
-	/* Put OSC8M as source for Generic Clock Generator 0 */
-	GCLK->GENDIV.reg = GCLK_GENDIV_ID( GENERIC_CLOCK_GENERATOR_MAIN ) ; // Generic Clock Generator 0
-	while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY );
+  #if CLOCK_USE_PLL
+  /* reset the GCLK module so it is in a known state */
+  GCLK->CTRL.reg = GCLK_CTRL_SWRST;
+  while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
 
-	GCLK->GENCTRL.reg = ( GCLK_GENCTRL_ID( GENERIC_CLOCK_GENERATOR_MAIN ) | GCLK_GENCTRL_SRC_OSC8M | GCLK_GENCTRL_GENEN );
-	while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY );
+  /* setup generic clock 1 to feed DPLL with 1MHz */
+  GCLK->GENDIV.reg = (GCLK_GENDIV_DIV(8) | GCLK_GENDIV_ID(1));
+  GCLK->GENCTRL.reg = (GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_OSC8M | GCLK_GENCTRL_ID(1));
+  GCLK->CLKCTRL.reg = (GCLK_CLKCTRL_GEN(1) | GCLK_CLKCTRL_ID(1) |	GCLK_CLKCTRL_CLKEN);
+  while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
 
-	SystemCoreClock=8000000ul;
+  /* Calculate LDRFRAC and LDR */
+  uint32_t reference_divider = 1;
+  uint32_t reference_frequency = 1000000;
+  uint32_t output_frequency = 48000000;
+  
+  uint32_t refclk = reference_frequency;
+  refclk = refclk / reference_divider;
+  uint32_t tmpldr = (output_frequency << 4) / refclk;
+  uint8_t tmpldrfrac = tmpldr & 0x0f;
+  tmpldr = (tmpldr >> 4) - 1;
+
+  /* enable PLL */
+  SYSCTRL->DPLLRATIO.reg = (SYSCTRL_DPLLRATIO_LDR(tmpldr));
+  SYSCTRL->DPLLCTRLB.reg = (SYSCTRL_DPLLCTRLB_REFCLK_GCLK);
+  SYSCTRL->DPLLCTRLA.reg = (SYSCTRL_DPLLCTRLA_ENABLE);
+  SYSCTRL->DPLLCTRLA.bit.ONDEMAND = 0;
+  SYSCTRL->DPLLCTRLA.bit.RUNSTDBY = 0;
+  while(!(SYSCTRL->DPLLSTATUS.reg & (SYSCTRL_DPLLSTATUS_CLKRDY | SYSCTRL_DPLLSTATUS_LOCK))) {}
+
+  /* select the PLL as source for clock generator 0 (CPU core clock) */
+  GCLK->GENDIV.reg =  (GCLK_GENDIV_DIV(CLOCK_PLL_DIV) | GCLK_GENDIV_ID(0));
+  GCLK->GENCTRL.reg = (GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_DPLL96M | GCLK_GENCTRL_ID(0));
+  
+  /** change the NVM controllers flash wait states according to the table in the SAMD21 datasheet */
+  NVMCTRL->CTRLB.bit.RWS = 3;
+
+  #else /* do not use PLL, use internal 8MHz oscillator directly Generic Clock Generator 0 */
+  GCLK->GENDIV.reg =  (GCLK_GENDIV_DIV(GENERIC_CLOCK_GENERATOR_MAIN) | GCLK_GENDIV_ID(0));
+  GCLK->GENCTRL.reg = (GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_OSC8M | GCLK_GENCTRL_ID(0));
+  #endif
+
+  /* make sure we synchronize clock generator 0 before we go on */
+  while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
+
+
+
+
+
+
+//
+//
+	///* Modify PRESCaler value of OSC8M to have 8MHz */
+	//SYSCTRL->OSC8M.bit.PRESC = SYSCTRL_OSC8M_PRESC_0_Val ;  // recent versions of CMSIS from Atmel changed the prescaler defines
+//
+	///* Put OSC8M as source for Generic Clock Generator 0 */
+	//GCLK->GENDIV.reg = GCLK_GENDIV_ID( GENERIC_CLOCK_GENERATOR_MAIN ) ; // Generic Clock Generator 0
+	//while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY );
+//
+	//GCLK->GENCTRL.reg = ( GCLK_GENCTRL_ID( GENERIC_CLOCK_GENERATOR_MAIN ) | GCLK_GENCTRL_SRC_OSC8M | GCLK_GENCTRL_GENEN );
+	//while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY );
+
+//	SystemCoreClock=8000000ul;
 	
-	SysTick_Config(SystemCoreClock / 1000); // Configure the system ticks to 8Mhz
+//	SysTick_Config(SystemCoreClock / 1000); // Configure the system ticks to 8Mhz
 }
 
 void initializePins()
@@ -151,14 +249,14 @@ void initializeRTC()
 
 	// Set RTC to interrupt every second for now just to make sure it works.
 	// Will finally set to one minute.
-	#ifdef EVERY_SECOND
+#ifdef EVERY_SECOND
 	ds3232RTC.setAlarm(ALM1_EVERY_SECOND, 0, 0, 0);
 	ds3232RTC.alarmInterrupt(ALARM_1, true);
-	#endif
-	#ifdef EVERY_MINUTE
+#endif
+#ifdef EVERY_MINUTE
 	ds3232RTC.setAlarm(ALM2_EVERY_MINUTE, 0, 0, 0);
 	ds3232RTC.alarmInterrupt(ALARM_2, true);
-	#endif
+#endif
 
 	// Enable 32Khz output on pin 1
 	ds3232RTC.writeRTC(RTC_STATUS, ds3232RTC.readRTC(RTC_STATUS) | _BV(EN32KHZ));
@@ -179,6 +277,26 @@ void initializeRTC()
 	// Ensure the oscillator is running.
 	MCP7941.startClock();
 	//	MCP7941.stopClock();
+}
+
+void sleepProcessor()
+{
+	// Clear the alarm interrupt in the RTC, else we will never wake up from sleep.
+	// Very strange happening that only exhibits self when interrupt trigger is LOW.
+	// and we want to deepsleep.
+	uint8_t stat = ds3232RTC.alarm(ALARM_2);
+
+	// Power down the I2C (SERCOM0) to reduce power while sleeping
+	disableWire();
+
+	PM->SLEEP.reg = PM_SLEEP_MASK;
+	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+
+	__DSB();
+	__WFI();
+
+	// Power up the I2C (SERCOM0) comms
+	enableWire();
 }
 
 bool updateDisplay()
@@ -218,7 +336,7 @@ bool updateDisplay()
 		pinValD = false;
 
 		// Display the menu on button press
-//		displayMenu();
+		displayMenu();
 
 		// Back from the menu so redisplay the watch face
 		rtcFired = true;
@@ -230,14 +348,31 @@ void setup()
 {
 	// Reset to processors main clock to be 8Mhz clock.  
 	// Allows for very low power consumption during sleep
-	configure8Mhz();
+//	configure8Mhz();
+	turn_off_bod33();
+	configureInternalDFLL();
 	
 	// Set up communications
 	Wire.begin();
-	
+
 	// Set up display
 	display.begin();
 
+	volatile uint8_t xx = REG_PM_CPUSEL;
+	volatile int a  = REG_PM_APBASEL;
+	volatile int b  = REG_PM_APBBSEL;
+	volatile int c  = REG_PM_APBCSEL;
+//	PM->APBASEL.reg = PM_APBASEL_APBADIV_DIV1_Val ;
+//	PM->APBBSEL.reg = PM_APBBSEL_APBBDIV_DIV1_Val ;
+//	PM->APBCSEL.reg = PM_APBCSEL_APBCDIV_DIV1_Val ;
+
+
+//	SPI.setClockDivider(0);
+//	SERCOM * x = SPI.getSercom();
+//	Sercom* y = x->sercom;
+	
+//	int baud = y->SPI.BAUD.reg;
+	
 	disableInterrupts();
 
 	// Setup the pins
@@ -251,6 +386,9 @@ void setup()
 
 	display.setTextColor(BLACK);
 	display.setTextSize(1);
+
+	// Initialise the display menu
+	initializeMenu();
 	
 	enableInterrupts();
 
@@ -265,30 +403,21 @@ void loop()
 	{
 		// Before we sleep set the VCOM to external, the 1Hz VCOM signal
 		digitalWrite(DISPLAY_EXTMODE, HIGH); // switch VCOM to external
-		
-		// Disable SysTick timer (enables delay/time functions).. 
+
+#ifdef SLEEP_PROCESSOR
+		// Disable SysTick timer (enables delay/time functions)..
 		// causes interrupt that wakes the processor...may be a diff way to disable via clocks...not sure
 		SysTick->CTRL &= ~(SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk);
-		
-		// Clear the alarm interrupt in the RTC, else we will never wake up from sleep.
-		// Very strange happening that only exhibits self when interrupt trigger is LOW.
-		// and we want to deepsleep.
-		uint8_t stat = ds3232RTC.alarm(ALARM_2);
 
-		// Power down the I2C (SERCOM0) to reduce power while sleeping
-		disableWire();
-
-		PM->SLEEP.reg = PM_SLEEP_MASK;
-		SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
-
-		__DSB();
-		__WFI();
-
-		// Power up the I2C (SERCOM0) comms
-		enableWire();
+		// Sleep and wait for interrupt from buttons or RTC
+		sleepProcessor();
 
 		// Enable SysTick IRQ and SysTick Timer
 		SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
+#else
+		delay(1000);
+#endif		
+
 
 		// If we got here we were woken up by interrupt
 		digitalWrite(DISPLAY_EXTMODE, LOW); // switch VCOM to software.

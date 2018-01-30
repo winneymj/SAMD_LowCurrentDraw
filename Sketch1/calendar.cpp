@@ -20,9 +20,8 @@
 #include "stringUtils.h"
 //#include "menu.h"
 //#include "datetime.h"
-#include "cour6pt7b.h"
-#include "courbd6pt7b.h"
-#include "cour8pt7b.h"
+//#include "cour6pt7b.h"
+//#include "courbd6pt7b.h"
 #include "Calendar.h"
 
 //extern void printCenterString(char *str, bool inverted);
@@ -75,10 +74,20 @@ void Calendar::displayGrid(bool grid)
 	_displayGrid = grid;
 }
 
+void Calendar::setFont(const GFXfont* font)
+{
+	_font = font;
+}
+
+void Calendar::setDOWFont(const GFXfont* font)
+{
+	_dowfont = font;
+}
+
 void Calendar::displayDates(tmElements_t currTime)
 {
 	_display.setTextSize(1);
-	_display.setFont(&cour6pt7b);
+	_display.setFont(_font);
 	_display.setTextColor(_invert ? WHITE: BLACK, _invert ? BLACK : WHITE);
 
 	// Get the date to start printing in the top left of calendar, Last StartDay.
@@ -150,7 +159,7 @@ uint8_t Calendar::daysMonth(tmElements_t currTime, uint8_t offset) // -1 previou
 void Calendar::displayDOW()
 {
 	_display.setTextSize(1);
-	_display.setFont(&courbd6pt7b);
+	_display.setFont(_dowfont);
 	_display.setTextColor(_invert ? WHITE: BLACK, _invert ? BLACK : WHITE);
 
 	int arrIndex = _calendarDayOffWeek;

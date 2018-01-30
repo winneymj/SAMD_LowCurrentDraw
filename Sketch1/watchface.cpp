@@ -17,6 +17,7 @@
 #include "Calendar.h"
 #include "arialn26pt7b.h"
 #include "courbd6pt7b.h"
+#include "cour6pt7b.h"
 #include "watchface.h"
 
 WatchFace::WatchFace(Adafruit_SharpMem& display, DS3232RTC& ds3232RTC) : _display(display), _ds3232RTC(ds3232RTC), _invert(false)
@@ -35,6 +36,8 @@ void WatchFace::displayCalendar()
 	_ds3232RTC.read(currTime);
 	
 	Calendar calendar(_display);
+	calendar.setFont(&cour6pt7b);
+	calendar.setDOWFont(&courbd6pt7b);
 	calendar.invert(_invert);
 
 	calendar.displayCalendar(currTime);
