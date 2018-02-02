@@ -15,20 +15,17 @@
 #include <Watch_Menu.h>
 #include "defs.h"
 #include "watchface.h"
+#include "menu.h"
 
 #ifndef __AVR__
 #include <SPI.h>
 #endif
 	
-extern WatchMenu menu;
-extern void initializeMenu();
-extern void displayMenu();
-
 Adafruit_SharpMem display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS);
 DS3232RTC ds3232RTC;
 RTCx MCP7941;
 WatchFace watchFace(display, ds3232RTC);
-WatchMenu *currentMenu = &menu;
+MainMenu watchMenu;
 
 volatile boolean rtcFired = false; //variables in ISR need to be volatile
 volatile boolean pinValM = false;
@@ -128,10 +125,7 @@ void turn_off_bod33(void)
 
 void configureInternalDFLL()
 {
-  ///* Disable the DFLL */
-  //SYSCTRL->DFLLCTRL.reg &= ~SYSCTRL_DFLLCTRL_ENABLE ;
-  //while ( (SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY) == 0 );
- 
+  /* Do not allow to run in standby */ 
   SYSCTRL->DFLLCTRL.bit.RUNSTDBY = 0;
 
   /* Enable the DFLL */
@@ -196,27 +190,6 @@ void configure8Mhz()
 
   /* make sure we synchronize clock generator 0 before we go on */
   while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
-
-
-
-
-
-
-//
-//
-	///* Modify PRESCaler value of OSC8M to have 8MHz */
-	//SYSCTRL->OSC8M.bit.PRESC = SYSCTRL_OSC8M_PRESC_0_Val ;  // recent versions of CMSIS from Atmel changed the prescaler defines
-//
-	///* Put OSC8M as source for Generic Clock Generator 0 */
-	//GCLK->GENDIV.reg = GCLK_GENDIV_ID( GENERIC_CLOCK_GENERATOR_MAIN ) ; // Generic Clock Generator 0
-	//while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY );
-//
-	//GCLK->GENCTRL.reg = ( GCLK_GENCTRL_ID( GENERIC_CLOCK_GENERATOR_MAIN ) | GCLK_GENCTRL_SRC_OSC8M | GCLK_GENCTRL_GENEN );
-	//while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY );
-
-//	SystemCoreClock=8000000ul;
-	
-//	SysTick_Config(SystemCoreClock / 1000); // Configure the system ticks to 8Mhz
 }
 
 void initializePins()
@@ -336,7 +309,7 @@ bool updateDisplay()
 		pinValD = false;
 
 		// Display the menu on button press
-		displayMenu();
+		watchMenu.draw();
 
 		// Back from the menu so redisplay the watch face
 		rtcFired = true;
@@ -358,21 +331,6 @@ void setup()
 	// Set up display
 	display.begin();
 
-	volatile uint8_t xx = REG_PM_CPUSEL;
-	volatile int a  = REG_PM_APBASEL;
-	volatile int b  = REG_PM_APBBSEL;
-	volatile int c  = REG_PM_APBCSEL;
-//	PM->APBASEL.reg = PM_APBASEL_APBADIV_DIV1_Val ;
-//	PM->APBBSEL.reg = PM_APBBSEL_APBBDIV_DIV1_Val ;
-//	PM->APBCSEL.reg = PM_APBCSEL_APBCDIV_DIV1_Val ;
-
-
-//	SPI.setClockDivider(0);
-//	SERCOM * x = SPI.getSercom();
-//	Sercom* y = x->sercom;
-	
-//	int baud = y->SPI.BAUD.reg;
-	
 	disableInterrupts();
 
 	// Setup the pins
@@ -388,7 +346,7 @@ void setup()
 	display.setTextSize(1);
 
 	// Initialise the display menu
-	initializeMenu();
+	watchMenu.initialize();
 	
 	enableInterrupts();
 

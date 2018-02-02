@@ -28,6 +28,45 @@
 #define MENU_SUB_SUB_INDEX  2
 #define MENU_CHANNELS_INDEX 3
 
+// DATE/TIME menu settings
+#define SETTING_NOW_NONE  0
+#define SETTING_NOW_10HOUR  1
+#define SETTING_NOW_1HOUR 2
+#define SETTING_NOW_10MIN 3
+#define SETTING_NOW_1MIN  4
+
+#define SETTING_NOW_DAY10 5
+#define SETTING_NOW_DAY1 6
+#define SETTING_NOW_MONTH 7
+#define SETTING_NOW_YEAR10 8
+#define SETTING_NOW_YEAR1 9
+
+#define SETTING_NOW_12HR  10
+#define SETTING_NOW_24HR  11
+#define SETTING_NOW_AMHR  12
+#define SETTING_NOW_PMHR  13
+
+//#define OPTION_TIME_INDEX 1
+//#define OPTION_12HR_INDEX 2
+//#define OPTION_SAVE_INDEX 3
+//#define OPTION_EXIT_INDEX 4
+
+#define OPTION_DATE_DATE_INDEX 0
+#define OPTION_DATE_SAVE_INDEX 1
+#define OPTION_DATE_EXIT_INDEX 2
+
+#define OPTION_TIME_TIME_INDEX 0
+#define OPTION_TIME_12HR_INDEX 1
+#define OPTION_TIME_SAVE_INDEX 2
+#define OPTION_TIME_EXIT_INDEX 3
+
+#define AMPM  5 // Bit 5 of Hour byte
+
+enum eHR1224 { HR12, HR24 };
+enum eAMPM { HRAM, HRPM };
+
+//----------------------------
+
 typedef struct{
 	uint8_t now;
 	uint8_t val;

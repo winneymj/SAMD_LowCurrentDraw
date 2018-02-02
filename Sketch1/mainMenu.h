@@ -8,6 +8,8 @@
 #include "WProgram.h"
 #endif
 
+#include <Watch_Menu.h>
+
 #define NUM_MENUS             3
 #define MENU_MAIN_INDEX       0
 #define MENU_DATETIME_INDEX   1
@@ -37,40 +39,27 @@
 #define SETTING_CALENDAR_GRID_ONOFF     1
 #define SETTING_CALENDAR_STARTDAY       2
 
-
 #define INACTIVITY 30000
 
-extern Adafruit_SharpMem display;
-extern const GFXfont courier_10x15FontInfo;
-extern volatile boolean rtcRead;
-extern WatchMenu *currentMenu;
-extern volatile uint8_t pinValM;
-extern volatile uint8_t pinValD;
-extern volatile uint8_t pinValU;
-extern pFunc drawFunc;
-extern void displayTime();
-extern bool invert;
+class MainMenu
+{
+public:
+	static bool _menuExit;
+	static s_menuNowSetting _setting;
+	static WatchMenu *_currentMenu;
+	static WatchMenu *_menu;
+	
+public:
+	void initialize();
+	void draw();
+	static void exitMenu();
+	static void menuDownFunc();
+	static void menuUpFunc();
 
-
-// Forward Declarations
-void timeFunc();
-void dateFunc();
-void invertFunc();
-void calendarFunc();
-void switchTemp();
-void exitMenu();
-void menuUpFunc();
-void menuDownFunc();
-void calendarDownFunc();
-void calendarUpFunc();
-void calendarBack();
-void showCalendarGridOptions();
-void showCalendarGridOptions(int16_t invert_start, int16_t invert_length);
-void showCalendarStartDayOptions();
-void showCalendarStartDayOptions(int16_t invert_start, int16_t invert_length);
-
-
-
+	void setExitMenu(bool value) { _menuExit = value; };
+	bool getExitMenu() { return _menuExit; };
+		
+};
 
 
 #endif
