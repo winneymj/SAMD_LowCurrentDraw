@@ -21,8 +21,8 @@
 
 #include "defs.h"
 #include "icons.h"
-#include "menu.h"
-#include "timeMenu.h"
+#include "MainMenu.h"
+#include "TimeSettingsMenu.h"
 #include "cour6pt7b.h"
 
 // Externals
@@ -32,11 +32,17 @@ extern boolean pinValM;
 extern boolean pinValD;
 extern boolean pinValU;
 extern Adafruit_SharpMem display;
+extern void dateFunc();
+extern void invertFunc();
+extern void switchTemp();
+extern void calendarFunc();
 
-bool MainMenu::_menuExit = false;
+
 s_menuNowSetting MainMenu::_setting;
 WatchMenu *MainMenu::_menu = new WatchMenu(display);
 WatchMenu *MainMenu::_currentMenu = MainMenu::_menu;
+bool MainMenu::_menuExit = false;
+bool MainMenu::_inverted = false;
 
 void MainMenu::initialize()
 {
@@ -53,7 +59,7 @@ void MainMenu::initialize()
 	// Create sub menu for date & time
 	_menu->createMenu(MENU_DATETIME_INDEX, 3, PSTR("<DATE & TIME>"), MENU_TYPE_ICON, MainMenu::menuDownFunc, MainMenu::menuUpFunc);
 	_menu->createOption(MENU_DATETIME_INDEX, OPT_DATE_INDEX, PSTR("Date"), menu_calendarBitmaps, dateFunc);
-	_menu->createOption(MENU_DATETIME_INDEX, OPT_TIME_INDEX, PSTR("Time"), menu_clockBitmaps, TimeMenu::timeFunc);
+	_menu->createOption(MENU_DATETIME_INDEX, OPT_TIME_INDEX, PSTR("Time"), menu_clockBitmaps, TimeSettingsMenu::timeFunc);
 	_menu->createOption(MENU_DATETIME_INDEX, OPT_DATE_TIME_EXIT_INDEX, PSTR("Exit"), menu_exitBitmaps, (uint8_t)MENU_MAIN_INDEX);
 	
 	// Create sub menu for settings
@@ -72,25 +78,25 @@ void MainMenu::initialize()
 //----------------------------------------------------------------
 void MainMenu::draw()
 {
-	setExitMenu(false);
+	_menuExit = false;
 	
 	// get the current time in millis
 	long pressStart = millis();
 	
-	while(!getExitMenu())
+	while(!_menuExit)
 	{
 //		delay(10);
 //		rtcRead = !rtcRead;
 
 		// Clear bottom of screen
-		display.fillRect(0, 64, 128, 128, invert ? BLACK : WHITE);
+		display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE);
 		bool animating = _currentMenu->updateMenu();
 		display.refresh();
 
 		while (animating)
 		{
 			// Clear bottom of screen
-			display.fillRect(0, 64, 128, 128, invert ? BLACK : WHITE);
+			display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE);
 			animating = _currentMenu->updateMenu();
 			display.refresh();
 //			delay(20);
@@ -142,13 +148,13 @@ void MainMenu::draw()
 
 	// Exiting the menu so reset back to default.
 	_menu->resetMenu();
-	setExitMenu(false);
+	_menuExit = false;
 }
 
 void MainMenu::exitMenu()
 {
 	// Clear down bottom of the screen
-	display.fillRect(0, 64, 128, 128, invert ? BLACK : WHITE);
+	display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE);
 
 	// Set flag to make sure we exit the while loop.
 	_menuExit = true;
@@ -168,9 +174,6 @@ void MainMenu::menuUpFunc()
 /*************REMOVE THESE ***********************/
 void dateFunc()
 {
-}
-void timeFunc()
-{	
 }
 void calendarFunc()
 {

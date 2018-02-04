@@ -15,7 +15,7 @@
 #include <Watch_Menu.h>
 #include "defs.h"
 #include "watchface.h"
-#include "menu.h"
+#include "MainMenu.h"
 
 #ifndef __AVR__
 #include <SPI.h>

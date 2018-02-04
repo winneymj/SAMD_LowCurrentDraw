@@ -44,10 +44,11 @@
 class MainMenu
 {
 public:
-	static bool _menuExit;
+	static bool _inverted;
 	static s_menuNowSetting _setting;
 	static WatchMenu *_currentMenu;
 	static WatchMenu *_menu;
+	static bool _menuExit;
 	
 public:
 	void initialize();
@@ -55,10 +56,6 @@ public:
 	static void exitMenu();
 	static void menuDownFunc();
 	static void menuUpFunc();
-
-	void setExitMenu(bool value) { _menuExit = value; };
-	bool getExitMenu() { return _menuExit; };
-		
 };
 
 

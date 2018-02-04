@@ -5,60 +5,57 @@
 #include <Adafruit_SharpMem.h>
 #include <Watch_Menu.h>
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
-#include <RTCx.h>         // https://github.com/stevemarple/RTCx
 
 #include "defs.h"
-#include "menu.h"
-#include "timeMenu.h"
+#include "MainMenu.h"
+#include "TimeSettingsMenu.h"
 #include "cour8pt7b.h"
 
 extern Adafruit_SharpMem display;
 extern DS3232RTC ds3232RTC;
-extern bool invert;
 
-TimeMenu timewimeyMenu;
-eAMPM amPm;
+TimeSettingsMenu timeSettingMenu;
 
-WatchMenu *TimeMenu::_timeMenu = new WatchMenu(display);
-tmElements_t TimeMenu::_timeDataSet = {0};
-eHR1224 TimeMenu::_hr1224;
-
+WatchMenu *TimeSettingsMenu::_menu = new WatchMenu(display);
+tmElements_t TimeSettingsMenu::_timeDataSet = {0};
+eHR1224 TimeSettingsMenu::_hr1224;
+eAMPM TimeSettingsMenu::_amPm;
 
 //------------------------------------------------------------
 // Method is called when the date/time menu option is selected.
 // It creates a new String type menu (as opposed to Icon).
 //------------------------------------------------------------
-void TimeMenu::timeFunc()
+void TimeSettingsMenu::timeFunc()
 {
 	tmElements_t currTime;
 	ds3232RTC.read(currTime);
 
 	// Create copy of current time & date
-	memcpy(&TimeMenu::_timeDataSet, &currTime, sizeof(tmElements_t));
-	_hr1224 = (ds3232RTC.readRTC(RTC_HOURS) & _BV(HR1224)) ? HR12 : HR24; // Hr
-	amPm = (ds3232RTC.readRTC(RTC_HOURS) & _BV(AMPM)) ? HRPM : HRAM; // Morning/Afternoon
+	memcpy(&TimeSettingsMenu::_timeDataSet, &currTime, sizeof(tmElements_t));
+	TimeSettingsMenu::_hr1224 = (ds3232RTC.readRTC(RTC_HOURS) & _BV(HR1224)) ? HR12 : HR24; // Hr
+	TimeSettingsMenu::_amPm = (ds3232RTC.readRTC(RTC_HOURS) & _BV(AMPM)) ? HRPM : HRAM; // Morning/Afternoon
 
-	_timeMenu->initMenu(1);  // Create a menu system with ? menu rows
-	_timeMenu->setTextSize(1);
-	_timeMenu->setFont(&cour8pt7b);
-	_timeMenu->createMenu(MENU_MAIN_INDEX, 4, PSTR("<DATE/TIME>"), MENU_TYPE_STR, TimeMenu::timeDownFunc, TimeMenu::timeUpFunc);
-	_timeMenu->createOption(MENU_MAIN_INDEX, OPTION_TIME_SAVE_INDEX, PSTR("Save"), NULL, TimeMenu::saveTimeFunc);
-	_timeMenu->createOption(MENU_MAIN_INDEX, OPTION_TIME_EXIT_INDEX, PSTR("Exit"), NULL, timeBack);
-	_timeMenu->invertDisplay(invert);
+	_menu->initMenu(1);  // Create a menu system with ? menu rows
+	_menu->setTextSize(1);
+	_menu->setFont(&cour8pt7b);
+	_menu->createMenu(MENU_MAIN_INDEX, 4, PSTR("<DATE/TIME>"), MENU_TYPE_STR, TimeSettingsMenu::timeDownFunc, TimeSettingsMenu::timeUpFunc);
+	_menu->createOption(MENU_MAIN_INDEX, OPTION_TIME_SAVE_INDEX, PSTR("Save"), NULL, TimeSettingsMenu::saveTimeFunc);
+	_menu->createOption(MENU_MAIN_INDEX, OPTION_TIME_EXIT_INDEX, PSTR("Exit"), NULL, timeBack);
+	_menu->invertDisplay(MainMenu::_inverted);
 
-	timewimeyMenu.showTimeStr();
-	timewimeyMenu.show1224HrStr();
+	timeSettingMenu.showTimeStr();
+	timeSettingMenu.show1224HrStr();
 
 	// Default to date selected
-	_timeMenu->selectedOption(MENU_MAIN_INDEX, OPTION_TIME_TIME_INDEX); // Set the default selection to the date
+	_menu->selectedOption(MENU_MAIN_INDEX, OPTION_TIME_TIME_INDEX); // Set the default selection to the date
 	
 	// Point to date/time menu
-	MainMenu::_currentMenu = _timeMenu;
+	MainMenu::_currentMenu = _menu;
 
-	display.fillRect(0, 64, 128, 128, invert ? BLACK : WHITE); // Clear display
+	display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE); // Clear display
 }
 
-void TimeMenu::timeBack()
+void TimeSettingsMenu::timeBack()
 {
 	// Point to top level menu
 	MainMenu::_currentMenu = MainMenu::_menu;
@@ -70,10 +67,10 @@ byte getMaxValForTimeSetting()
 	switch(MainMenu::_setting.now)
 	{
 		case SETTING_NOW_10HOUR:
-		max = (TimeMenu::_hr1224 ==  HR12) ? 1 : 2;
+		max = (TimeSettingsMenu::_hr1224 ==  HR12) ? 1 : 2;
 		break;
 		case SETTING_NOW_1HOUR:
-		max = (TimeMenu::_hr1224 ==  HR12) ? 2 : 9;
+		max = (TimeSettingsMenu::_hr1224 ==  HR12) ? 2 : 9;
 		break;
 		case SETTING_NOW_10MIN:
 		max = 5;
@@ -98,7 +95,7 @@ byte getMaxValForTimeSetting()
 //------------------------------
 // Move the menu up on key press
 //------------------------------
-void TimeMenu::timeDataUp()
+void TimeSettingsMenu::timeDataUp()
 {
 	MainMenu::_setting.val++;
 	if(MainMenu::_setting.val > getMaxValForTimeSetting())
@@ -108,7 +105,7 @@ void TimeMenu::timeDataUp()
 //--------------------------------
 // Move the menu down on key press
 //--------------------------------
-void TimeMenu::timeDataDown()
+void TimeSettingsMenu::timeDataDown()
 {
 	MainMenu::_setting.val--;
 	byte max = getMaxValForTimeSetting();
@@ -116,133 +113,133 @@ void TimeMenu::timeDataDown()
 	MainMenu::_setting.val = max;
 }
 
-void TimeMenu::select1224hr()
+void TimeSettingsMenu::select1224hr()
 {
 	// Set the up and down buttons, and drawing routine to new functions
-	_timeMenu->setDownFunc(TimeMenu::timeDataUp);
-	_timeMenu->setUpFunc(TimeMenu::timeDataDown);
-	_timeMenu->setDrawFunc(TimeMenu::hr1224Draw);
+	_menu->setDownFunc(TimeSettingsMenu::timeDataUp);
+	_menu->setUpFunc(TimeSettingsMenu::timeDataDown);
+	_menu->setDrawFunc(TimeSettingsMenu::hr1224Draw);
 
 	switch(MainMenu::_setting.now)
 	{
 		case SETTING_NOW_NONE:
 		{
-			MainMenu::_setting.val = TimeMenu::_hr1224;
+			MainMenu::_setting.val = TimeSettingsMenu::_hr1224;
 			MainMenu::_setting.now = SETTING_NOW_24HR;
 			break;
 		}
 		default:
-		TimeMenu::_hr1224 = (eHR1224)MainMenu::_setting.val;
+		TimeSettingsMenu::_hr1224 = (eHR1224)MainMenu::_setting.val;
 		MainMenu::_setting.now = SETTING_NOW_NONE;
 
 		// Go back to menu after finishing the editing of the date.
 		// TODO - Find a nicer way to do this................
-		_timeMenu->setDownFunc(TimeMenu::timeDownFunc);
-		_timeMenu->setUpFunc(TimeMenu::timeUpFunc);
-		_timeMenu->setDrawFunc(NULL);
+		_menu->setDownFunc(TimeSettingsMenu::timeDownFunc);
+		_menu->setUpFunc(TimeSettingsMenu::timeUpFunc);
+		_menu->setDrawFunc(NULL);
 		break;
 	}
 
 	// Update the time mode
-	timewimeyMenu.show1224HrStr();
+	timeSettingMenu.show1224HrStr();
 }
 
-void TimeMenu::hr1224Draw()
+void TimeSettingsMenu::hr1224Draw()
 {
-	TimeMenu::_hr1224 = (eHR1224)MainMenu::_setting.val;
+	TimeSettingsMenu::_hr1224 = (eHR1224)MainMenu::_setting.val;
 	
-	timewimeyMenu.show1224HrStr(1, 2);
+	timeSettingMenu.show1224HrStr(1, 2);
 }
 
 //----------------------------------------------------
 // Method is called when the Middle button (select) is
 // pressed on the time menu.
 //----------------------------------------------------
-void TimeMenu::selectTime()
+void TimeSettingsMenu::selectTime()
 {
 	// Set the up and down buttons, and drawing routine to new functions
-	_timeMenu->setDownFunc(TimeMenu::timeDataUp);
-	_timeMenu->setUpFunc(TimeMenu::timeDataDown);
-	_timeMenu->setDrawFunc(TimeMenu::timeDraw);
+	_menu->setDownFunc(TimeSettingsMenu::timeDataUp);
+	_menu->setUpFunc(TimeSettingsMenu::timeDataDown);
+	_menu->setDrawFunc(TimeSettingsMenu::timeDraw);
 
 	switch(MainMenu::_setting.now)
 	{
 		case SETTING_NOW_NONE:
 		MainMenu::_setting.now = SETTING_NOW_10HOUR;
-		MainMenu::_setting.val = TimeMenu::_timeDataSet.Hour / 10;
+		MainMenu::_setting.val = TimeSettingsMenu::_timeDataSet.Hour / 10;
 		break;
 		case SETTING_NOW_10HOUR:
 		{
-			byte mod = TimeMenu::_timeDataSet.Hour % 10;
-			TimeMenu::_timeDataSet.Hour = (MainMenu::_setting.val * 10) + mod;
+			byte mod = TimeSettingsMenu::_timeDataSet.Hour % 10;
+			TimeSettingsMenu::_timeDataSet.Hour = (MainMenu::_setting.val * 10) + mod;
 			MainMenu::_setting.now = SETTING_NOW_1HOUR;
 			MainMenu::_setting.val = mod;
 		}
 		break;
 		case SETTING_NOW_1HOUR:
-		TimeMenu::_timeDataSet.Hour = ((TimeMenu::_timeDataSet.Hour / 10) * 10) + MainMenu::_setting.val;
-		if(TimeMenu::_timeDataSet.Hour > 23)
-		TimeMenu::_timeDataSet.Hour = 23;
+		TimeSettingsMenu::_timeDataSet.Hour = ((TimeSettingsMenu::_timeDataSet.Hour / 10) * 10) + MainMenu::_setting.val;
+		if(TimeSettingsMenu::_timeDataSet.Hour > 23)
+		TimeSettingsMenu::_timeDataSet.Hour = 23;
 		MainMenu::_setting.now = SETTING_NOW_10MIN;
-		MainMenu::_setting.val = TimeMenu::_timeDataSet.Minute / 10;
+		MainMenu::_setting.val = TimeSettingsMenu::_timeDataSet.Minute / 10;
 		break;
 		case SETTING_NOW_10MIN:
 		{
-			byte mod = TimeMenu::_timeDataSet.Minute % 10;
-			TimeMenu::_timeDataSet.Minute = (MainMenu::_setting.val * 10) + mod;
+			byte mod = TimeSettingsMenu::_timeDataSet.Minute % 10;
+			TimeSettingsMenu::_timeDataSet.Minute = (MainMenu::_setting.val * 10) + mod;
 			MainMenu::_setting.now = SETTING_NOW_1MIN;
 			MainMenu::_setting.val = mod;
 		}
 		break;
 		case SETTING_NOW_1MIN:
 		{
-			TimeMenu::_timeDataSet.Minute = ((TimeMenu::_timeDataSet.Minute / 10) * 10) + MainMenu::_setting.val;
-			if(TimeMenu::_timeDataSet.Minute > 59)
+			TimeSettingsMenu::_timeDataSet.Minute = ((TimeSettingsMenu::_timeDataSet.Minute / 10) * 10) + MainMenu::_setting.val;
+			if(TimeSettingsMenu::_timeDataSet.Minute > 59)
 			{
-				TimeMenu::_timeDataSet.Minute = 59;
+				TimeSettingsMenu::_timeDataSet.Minute = 59;
 			}
 
 			// If 12 hr clock then move on to AM/PM selection else end selection.
-			if (TimeMenu::_hr1224 == HR12)
+			if (TimeSettingsMenu::_hr1224 == HR12)
 			{
 				MainMenu::_setting.now = SETTING_NOW_AMHR;
-				MainMenu::_setting.val = amPm;
+				MainMenu::_setting.val = TimeSettingsMenu::_amPm;
 			}
 			else
 			{
 				MainMenu::_setting.now = SETTING_NOW_NONE;
 				// Go back to menu after finishing the editing of the date.
 				// TODO - Find a nicer way to do this................
-				_timeMenu->setDownFunc(TimeMenu::timeDownFunc);
-				_timeMenu->setUpFunc(TimeMenu::timeUpFunc);
-				_timeMenu->setDrawFunc(NULL);
+				_menu->setDownFunc(TimeSettingsMenu::timeDownFunc);
+				_menu->setUpFunc(TimeSettingsMenu::timeUpFunc);
+				_menu->setDrawFunc(NULL);
 			}
 		}
 		break;
 		default:
-		if (TimeMenu::_hr1224 == HR12)
+		if (TimeSettingsMenu::_hr1224 == HR12)
 		{
-			amPm = (eAMPM)MainMenu::_setting.val;
+			TimeSettingsMenu::_amPm = (eAMPM)MainMenu::_setting.val;
 		}
 		MainMenu::_setting.now = SETTING_NOW_NONE;
 
 		// Go back to menu after finishing the editing of the date.
 		// TODO - Find a nicer way to do this................
-		_timeMenu->setDownFunc(TimeMenu::timeDownFunc);
-		_timeMenu->setUpFunc(TimeMenu::timeUpFunc);
-		_timeMenu->setDrawFunc(NULL);
+		_menu->setDownFunc(TimeSettingsMenu::timeDownFunc);
+		_menu->setUpFunc(TimeSettingsMenu::timeUpFunc);
+		_menu->setDrawFunc(NULL);
 		break;
 	}
 
 	// Update the time display
-	timewimeyMenu.showTimeStr();
+	timeSettingMenu.showTimeStr();
 }
 
 //--------------------------------------------------------------
 // Method draws the selection highlight when changing the time.
 // The character highlight is reversed so it can be seen
 //--------------------------------------------------------------
-void TimeMenu::timeDraw()
+void TimeSettingsMenu::timeDraw()
 {
 	int16_t invert_start = -1;
 	int16_t invert_length = 0;
@@ -252,31 +249,31 @@ void TimeMenu::timeDraw()
 		case SETTING_NOW_10HOUR:
 		invert_start = 1;
 		invert_length = 1;
-		TimeMenu::_timeDataSet.Hour = (MainMenu::_setting.val * 10) + TimeMenu::_timeDataSet.Hour % 10;
+		TimeSettingsMenu::_timeDataSet.Hour = (MainMenu::_setting.val * 10) + TimeSettingsMenu::_timeDataSet.Hour % 10;
 		break;
 		case SETTING_NOW_1HOUR:
 		invert_start = 2;
 		invert_length = 1;
-		TimeMenu::_timeDataSet.Hour = ((TimeMenu::_timeDataSet.Hour / 10) * 10) + MainMenu::_setting.val;
+		TimeSettingsMenu::_timeDataSet.Hour = ((TimeSettingsMenu::_timeDataSet.Hour / 10) * 10) + MainMenu::_setting.val;
 		break;
 		case SETTING_NOW_10MIN:
 		invert_start = 4;
 		invert_length = 1;
-		TimeMenu::_timeDataSet.Minute = (MainMenu::_setting.val * 10) + TimeMenu::_timeDataSet.Minute % 10;
+		TimeSettingsMenu::_timeDataSet.Minute = (MainMenu::_setting.val * 10) + TimeSettingsMenu::_timeDataSet.Minute % 10;
 		break;
 		case SETTING_NOW_1MIN:
 		invert_start = 5;
 		invert_length = 1;
-		TimeMenu::_timeDataSet.Minute = ((TimeMenu::_timeDataSet.Minute / 10) * 10) + MainMenu::_setting.val;
+		TimeSettingsMenu::_timeDataSet.Minute = ((TimeSettingsMenu::_timeDataSet.Minute / 10) * 10) + MainMenu::_setting.val;
 		break;
 		case SETTING_NOW_AMHR:
 		invert_start = 7;
 		invert_length = 2;
-		amPm = (eAMPM)MainMenu::_setting.val;
+		TimeSettingsMenu::_amPm = (eAMPM)MainMenu::_setting.val;
 		break;
 	}
 
-	timewimeyMenu.showTimeStr(invert_start, invert_length);
+	timeSettingMenu.showTimeStr(invert_start, invert_length);
 }
 
 //--------------------------------------------------------------
@@ -284,18 +281,18 @@ void TimeMenu::timeDraw()
 //--------------------------------------------------------------
 void makeTimeStr(char* buff)
 {
-	switch(TimeMenu::_hr1224)
+	switch(TimeSettingsMenu::_hr1224)
 	{
 		case HR12:
-		sprintf_P(buff, PSTR("%1s%02u:%02u %2s"), "", TimeMenu::_timeDataSet.Hour, TimeMenu::_timeDataSet.Minute, (amPm == HRAM) ? "AM" : "PM");
+		sprintf_P(buff, PSTR("%1s%02u:%02u %2s"), "", TimeSettingsMenu::_timeDataSet.Hour, TimeSettingsMenu::_timeDataSet.Minute, (TimeSettingsMenu::_amPm == HRAM) ? "AM" : "PM");
 		break;
 		case HR24:
-		sprintf_P(buff, PSTR("%1s%02u:%02u %2s"), "", TimeMenu::_timeDataSet.Hour, TimeMenu::_timeDataSet.Minute, "");
+		sprintf_P(buff, PSTR("%1s%02u:%02u %2s"), "", TimeSettingsMenu::_timeDataSet.Hour, TimeSettingsMenu::_timeDataSet.Minute, "");
 		break;
 	}
 }
 
-void TimeMenu::showTimeStr()
+void TimeSettingsMenu::showTimeStr()
 {
 	showTimeStr(-1, 0);
 }
@@ -303,26 +300,26 @@ void TimeMenu::showTimeStr()
 //--------------------------------------------------------------
 // Method creates the time menu option using the date passed in.
 //--------------------------------------------------------------
-void TimeMenu::showTimeStr(int16_t invert_start, int16_t invert_length)
+void TimeSettingsMenu::showTimeStr(int16_t invert_start, int16_t invert_length)
 {
 	char buff[12];
 	makeTimeStr(buff);
-	TimeMenu::_timeMenu->createOption(MENU_MAIN_INDEX, OPTION_TIME_TIME_INDEX, invert_start, invert_length, buff, NULL, selectTime);
+	TimeSettingsMenu::_menu->createOption(MENU_MAIN_INDEX, OPTION_TIME_TIME_INDEX, invert_start, invert_length, buff, NULL, selectTime);
 }
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-void TimeMenu::show1224HrStr()
+void TimeSettingsMenu::show1224HrStr()
 {
 	show1224HrStr(-1, 0);
 }
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-void TimeMenu::show1224HrStr(int16_t invert_start, int16_t invert_length)
+void TimeSettingsMenu::show1224HrStr(int16_t invert_start, int16_t invert_length)
 {
 	char buff[7] = {0};
-	switch(TimeMenu::_hr1224)
+	switch(TimeSettingsMenu::_hr1224)
 	{
 		case HR12:
 		strcpy_P(buff, PSTR(" 12 hr"));
@@ -331,7 +328,7 @@ void TimeMenu::show1224HrStr(int16_t invert_start, int16_t invert_length)
 		strcpy_P(buff, PSTR(" 24 hr"));
 		break;
 	}
-	_timeMenu->createOption(MENU_MAIN_INDEX, OPTION_TIME_12HR_INDEX, invert_start, invert_length, buff, NULL, select1224hr);
+	_menu->createOption(MENU_MAIN_INDEX, OPTION_TIME_12HR_INDEX, invert_start, invert_length, buff, NULL, select1224hr);
 
 	// Redraw the time string also, as we may have changed the 12/24 hr option.
 	showTimeStr();
@@ -341,54 +338,58 @@ void TimeMenu::show1224HrStr(int16_t invert_start, int16_t invert_length)
 // Method handles down button pressed when
 // editing the date and time strings
 //----------------------------------------
-void TimeMenu::timeDownFunc()
+void TimeSettingsMenu::timeDownFunc()
 {
-	_timeMenu->upOption();
+	_menu->upOption();
 }
 
 //----------------------------------------
 // Method handles up button pressed when
 // editing the date and time strings
 //----------------------------------------
-void TimeMenu::timeUpFunc()
+void TimeSettingsMenu::timeUpFunc()
 {
-	_timeMenu->downOption();
+	_menu->downOption();
 }
 
 //----------------------------------------------------------------
 // Method to save the time when the Save menu option is selected.
 // Changes the menu option to "Saved".
 //----------------------------------------------------------------
-void TimeMenu::saveTimeFunc()
+void TimeSettingsMenu::saveTimeFunc()
 {
+	// zero out the seconds
+	TimeSettingsMenu::_timeDataSet.Second = 0;
+	
 	// Write the time.
-	ds3232RTC.write(TimeMenu::_timeDataSet);
-	// Set the 12/24 hr option.  This is bit 6 of the Hr (0x02), 0=24hr, 1=12hr.
-	byte hrRead = ds3232RTC.readRTC(RTC_HOURS); // Hr
+	ds3232RTC.write(TimeSettingsMenu::_timeDataSet);
 
+	volatile uint8_t hrs = ds3232RTC.readRTC(RTC_HOURS);
+
+	// Set the 12/24hr, AM/PM bits in the hour
 	// Set 12 or 24 hr
-	switch(TimeMenu::_hr1224)
+	switch(TimeSettingsMenu::_hr1224)
 	{
 		case HR12:
-		hrRead |= _BV(HR1224); // Set bit 6
-		switch(amPm)
+		hrs |= _BV(HR1224); // Set bit 6
+		switch(TimeSettingsMenu::_amPm)
 		{
 			case HRPM:
-			hrRead |= _BV(AMPM); // Set bit 5
+			hrs |= _BV(AMPM); // Set bit 5
 			break;
 			case HRAM:
-			hrRead &= ~_BV(AMPM); // Clear bit 5
+			hrs &= ~_BV(AMPM); // Clear bit 5
 			break;
 		}
 		break;
 		case HR24:
-		hrRead &= ~_BV(HR1224); // Clear bit 6
+		hrs &= ~_BV(HR1224); // Clear bit 6
 		break;
 	}
 
-	ds3232RTC.writeRTC(RTC_HOURS, hrRead); // Set hrs with AM/PM/24Hr/12Hr
+	ds3232RTC.writeRTC(RTC_HOURS, hrs);
 
 	// Change the option text to Saved
-	TimeMenu::_timeMenu->createOption(MENU_MAIN_INDEX, OPTION_TIME_SAVE_INDEX, PSTR("Saved"), NULL, TimeMenu::saveTimeFunc); // Position 3
+	TimeSettingsMenu::_menu->createOption(MENU_MAIN_INDEX, OPTION_TIME_SAVE_INDEX, PSTR("Saved"), NULL, TimeSettingsMenu::saveTimeFunc); // Position 3
 }
 

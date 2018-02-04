@@ -14,7 +14,7 @@
 #include <Watch_Menu.h>
 #include "defs.h"
 
-class TimeMenu
+class TimeSettingsMenu
 {
 public:
 	void showTimeStr();
@@ -34,9 +34,11 @@ public:
 	static void timeDataDown();
 	static void selectTime();
 	
-	static WatchMenu* _timeMenu;
+	static WatchMenu* _menu;
 	static tmElements_t _timeDataSet;
 	static eHR1224 _hr1224;
+	static eAMPM _amPm;
+
 
 
 };

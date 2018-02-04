@@ -436,10 +436,16 @@
     <Compile Include="defs.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="icons.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="invert_disp.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="menu.h">
+    <Compile Include="MainMenu.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="MainMenu.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Sketch1.ino">
@@ -451,10 +457,16 @@
     <Compile Include="stringUtils.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="TimeSettingsMenu.cpp">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="TimeDateDisplay.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="TimeDateDisplay.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="TimeSettingsMenu.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Watchface.cpp">
