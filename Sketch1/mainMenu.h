@@ -9,6 +9,7 @@
 #endif
 
 #include <Watch_Menu.h>
+#include "defs.h"
 
 #define NUM_MENUS             3
 #define MENU_MAIN_INDEX       0
