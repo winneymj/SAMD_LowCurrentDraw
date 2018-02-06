@@ -23,6 +23,8 @@
 #include "icons.h"
 #include "MainMenu.h"
 #include "TimeSettingsMenu.h"
+#include "DateSettingsMenu.h"
+#include "InvertSettingsMenu.h"
 #include "cour6pt7b.h"
 
 // Externals
@@ -58,13 +60,13 @@ void MainMenu::initialize()
 
 	// Create sub menu for date & time
 	_menu->createMenu(MENU_DATETIME_INDEX, 3, PSTR("<DATE & TIME>"), MENU_TYPE_ICON, MainMenu::menuDownFunc, MainMenu::menuUpFunc);
-	_menu->createOption(MENU_DATETIME_INDEX, OPT_DATE_INDEX, PSTR("Date"), menu_calendarBitmaps, dateFunc);
+	_menu->createOption(MENU_DATETIME_INDEX, OPT_DATE_INDEX, PSTR("Date"), menu_calendarBitmaps, DateSettingsMenu::dateFunc);
 	_menu->createOption(MENU_DATETIME_INDEX, OPT_TIME_INDEX, PSTR("Time"), menu_clockBitmaps, TimeSettingsMenu::timeFunc);
 	_menu->createOption(MENU_DATETIME_INDEX, OPT_DATE_TIME_EXIT_INDEX, PSTR("Exit"), menu_exitBitmaps, (uint8_t)MENU_MAIN_INDEX);
 	
 	// Create sub menu for settings
 	_menu->createMenu(MENU_SETTINGS_INDEX, 4, PSTR("<SETTINGS>"), MENU_TYPE_ICON, MainMenu::menuDownFunc, MainMenu::menuUpFunc);
-	_menu->createOption(MENU_SETTINGS_INDEX, OPT_INVERT_INDEX, PSTR("Invert"), menu_invertBitmaps, invertFunc);
+	_menu->createOption(MENU_SETTINGS_INDEX, OPT_INVERT_INDEX, PSTR("Invert"), menu_invertBitmaps, InvertSettingsMenu::invertFunc);
 	_menu->createOption(MENU_SETTINGS_INDEX, OPT_TEMPERATURE_INDEX, PSTR("Temperature"), (tempType == centigrade) ? menu_celciusBitmaps : menu_fahrenheitBitmaps, switchTemp);
 	_menu->createOption(MENU_SETTINGS_INDEX, OPT_CALENDAR_INDEX, PSTR("Calendar"), menu_calendarBitmaps, calendarFunc);
 	_menu->createOption(MENU_SETTINGS_INDEX, OPT_SETTINGS_EXIT_INDEX, PSTR("Exit"), menu_exitBitmaps, (uint8_t)MENU_MAIN_INDEX);
@@ -172,9 +174,6 @@ void MainMenu::menuUpFunc()
 
 
 /*************REMOVE THESE ***********************/
-void dateFunc()
-{
-}
 void calendarFunc()
 {
 }
