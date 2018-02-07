@@ -25,6 +25,7 @@
 #include "TimeSettingsMenu.h"
 #include "DateSettingsMenu.h"
 #include "InvertSettingsMenu.h"
+#include "CalendarSettingsMenu.h"
 #include "cour6pt7b.h"
 
 // Externals
@@ -34,10 +35,7 @@ extern boolean pinValM;
 extern boolean pinValD;
 extern boolean pinValU;
 extern Adafruit_SharpMem display;
-extern void dateFunc();
-extern void invertFunc();
 extern void switchTemp();
-extern void calendarFunc();
 
 
 s_menuNowSetting MainMenu::_setting;
@@ -68,7 +66,7 @@ void MainMenu::initialize()
 	_menu->createMenu(MENU_SETTINGS_INDEX, 4, PSTR("<SETTINGS>"), MENU_TYPE_ICON, MainMenu::menuDownFunc, MainMenu::menuUpFunc);
 	_menu->createOption(MENU_SETTINGS_INDEX, OPT_INVERT_INDEX, PSTR("Invert"), menu_invertBitmaps, InvertSettingsMenu::invertFunc);
 	_menu->createOption(MENU_SETTINGS_INDEX, OPT_TEMPERATURE_INDEX, PSTR("Temperature"), (tempType == centigrade) ? menu_celciusBitmaps : menu_fahrenheitBitmaps, switchTemp);
-	_menu->createOption(MENU_SETTINGS_INDEX, OPT_CALENDAR_INDEX, PSTR("Calendar"), menu_calendarBitmaps, calendarFunc);
+	_menu->createOption(MENU_SETTINGS_INDEX, OPT_CALENDAR_INDEX, PSTR("Calendar"), menu_calendarBitmaps, CalendarSettingsMenu::calendarFunc);
 	_menu->createOption(MENU_SETTINGS_INDEX, OPT_SETTINGS_EXIT_INDEX, PSTR("Exit"), menu_exitBitmaps, (uint8_t)MENU_MAIN_INDEX);
 }
 
@@ -174,9 +172,6 @@ void MainMenu::menuUpFunc()
 
 
 /*************REMOVE THESE ***********************/
-void calendarFunc()
-{
-}
 void switchTemp()
 {
 }

@@ -285,6 +285,9 @@ bool updateDisplay()
 		// write it all.
 		display.clearDisplayBuffer();
 
+		// See if inverted and set display
+		watchFace.invert(MainMenu::_inverted);
+		
 		watchFace.displayTime();
 
 		watchFace.displayCalendar();
