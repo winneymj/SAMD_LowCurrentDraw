@@ -9,6 +9,8 @@
 #ifndef CALENDARSETTINGSMENU_H_
 #define CALENDARSETTINGSMENU_H_
 
+#include <Watch_Menu.h>
+
 class CalendarSettingsMenu
 {
 public:

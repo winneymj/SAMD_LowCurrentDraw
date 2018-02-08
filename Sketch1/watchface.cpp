@@ -10,6 +10,8 @@
 
 #include <Time.h>         //http://www.arduino.cc/playground/Code/Time
 #include <TimeLib.h>         //http://www.arduino.cc/playground/Code/Time
+#include <Adafruit_GFX.h>
+#include <Adafruit_SharpMem.h>
 
 #include "defs.h"
 #include "stringUtils.h"
@@ -19,8 +21,14 @@
 #include "courbd6pt7b.h"
 #include "cour6pt7b.h"
 #include "watchface.h"
+#include "CalendarSettingsMenu.h"
 
-WatchFace::WatchFace(Adafruit_SharpMem& display, DS3232RTC& ds3232RTC) : _display(display), _ds3232RTC(ds3232RTC), _invert(false)
+WatchFace::WatchFace(Adafruit_SharpMem& display, DS3232RTC& ds3232RTC) : 
+	_display(display),
+	_ds3232RTC(ds3232RTC),
+	_invert(false),
+	_calendar(Calendar(display)),
+	_timeDate(TimeDateDisplay(display))
 {
 }
 
@@ -35,12 +43,12 @@ void WatchFace::displayCalendar()
 	tmElements_t currTime;
 	_ds3232RTC.read(currTime);
 	
-	Calendar calendar(_display);
-	calendar.setFont(&cour6pt7b);
-	calendar.setDOWFont(&courbd6pt7b);
-	calendar.invert(_invert);
+	_calendar.setFont(&cour6pt7b);
+	_calendar.setDOWFont(&courbd6pt7b);
+	_calendar.invert(_invert);
+	_calendar.displayGrid(CalendarSettingsMenu::_calendarGrid);
 
-	calendar.displayCalendar(currTime);
+	_calendar.displayCalendar(currTime);
 }
 
 
@@ -57,17 +65,16 @@ void WatchFace::displayTime()
 	_display.fillRect(0, 0, _display.width(), _display.height() / 2, _invert ? BLACK : WHITE);
 
 	// Update the display
-	TimeDateDisplay disp(_display);
-	disp.setFont(&arialn26pt7b);
-	disp.setDateFont(&courbd6pt7b);
-	disp.invert(_invert);
-	disp.displayDateTime(currTime);
+	_timeDate.setFont(&arialn26pt7b);
+	_timeDate.setDateFont(&courbd6pt7b);
+	_timeDate.invert(_invert);
+	_timeDate.displayDateTime(currTime);
 	
 //	displayTime(currTime);
 //	displayLongDate(currTime);
 
 	// Display the temperature
-	disp.setTempFont(&courbd6pt7b);
-	disp.setTempDegreeFont(&cour6pt8bDegree);
-	disp.displayTemp(temp);
+	_timeDate.setTempFont(&courbd6pt7b);
+	_timeDate.setTempDegreeFont(&cour6pt8bDegree);
+	_timeDate.displayTemp(temp);
 }

@@ -12,9 +12,18 @@
 #include <Time.h>         //http://www.arduino.cc/playground/Code/Time
 #include <TimeLib.h>         //http://www.arduino.cc/playground/Code/Time
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
-#include <Adafruit_GFX.h>
-//#include <Adafruit_SharpMem.h>
 #include "defs.h"
+
+#define CAL_XPOS          6
+#define CAL_YPOS          64
+#define CAL_WIDTH         126
+#define CAL_HEIGHT        64
+#define CAL_CELL_WIDTH    16
+#define CAL_CELL_HEIGHT   12
+#define CAL_ROWS          5
+#define CAL_COLUMNS       7
+#define TEXT_OFFSET_X     3
+#define TEXT_OFFSET_Y     1
 
 class Adafruit_SharpMem;
 

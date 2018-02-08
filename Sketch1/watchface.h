@@ -8,6 +8,9 @@
 #ifndef WATCHFACE_H_
 #define WATCHFACE_H_
 
+#include "Calendar.h"
+#include "TimeDateDisplay.h"
+
 class Adafruit_SharpMem;
 
 class WatchFace
@@ -22,6 +25,9 @@ private:
 	Adafruit_SharpMem& _display;
 	DS3232RTC& _ds3232RTC;
 	bool _invert;
+	Calendar _calendar;
+	TimeDateDisplay _timeDate;
+
 };
 
 

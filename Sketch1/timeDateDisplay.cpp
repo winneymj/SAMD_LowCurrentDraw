@@ -12,6 +12,9 @@
 #include <TimeLib.h>         //http://www.arduino.cc/playground/Code/Time
 #include <Wire.h>
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
+#include <Adafruit_GFX.h>
+#include <Adafruit_SharpMem.h>
+
 #include "defs.h"
 #include "stringUtils.h"
 #include "timeDateDisplay.h"

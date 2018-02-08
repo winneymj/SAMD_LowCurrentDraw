@@ -12,9 +12,7 @@
 #include "cour8pt7b.h"
 
 extern Adafruit_SharpMem display;
-extern DS3232RTC MyDS3232;
-
-s_menuNowSetting setting;
+extern DS3232RTC ds3232RTC;
 
 DateSettingsMenu dateSettingMenu;
 WatchMenu *DateSettingsMenu::_menu = new WatchMenu(display);
@@ -27,7 +25,7 @@ tmElements_t DateSettingsMenu::_dateDataSet = {0};
 void DateSettingsMenu::dateFunc()
 {
 	tmElements_t currTime;
-	MyDS3232.read(currTime);
+	ds3232RTC.read(currTime);
 
 	// Create copy of current time & date
 	memcpy(&_dateDataSet, &currTime, sizeof(tmElements_t));
@@ -66,32 +64,32 @@ void DateSettingsMenu::dateDraw()
 	int16_t invert_start = -1;
 	int16_t invert_length = 0;
 
-	switch(setting.now)
+	switch(MainMenu::_setting.now)
 	{
 		case SETTING_NOW_DAY10:
 		invert_start = 1;
 		invert_length = 1;
-		DateSettingsMenu::_dateDataSet.Day = (setting.val * 10) + (DateSettingsMenu::_dateDataSet.Day % 10);
+		DateSettingsMenu::_dateDataSet.Day = (MainMenu::_setting.val * 10) + (DateSettingsMenu::_dateDataSet.Day % 10);
 		break;
 		case SETTING_NOW_DAY1:
 		invert_start = 2;
 		invert_length = 1;
-		DateSettingsMenu::_dateDataSet.Day = ((DateSettingsMenu::_dateDataSet.Day / 10) * 10) + setting.val;
+		DateSettingsMenu::_dateDataSet.Day = ((DateSettingsMenu::_dateDataSet.Day / 10) * 10) + MainMenu::_setting.val;
 		break;
 		case SETTING_NOW_MONTH:
 		invert_start = 4;
 		invert_length = 3;
-		DateSettingsMenu::_dateDataSet.Month = setting.val;
+		DateSettingsMenu::_dateDataSet.Month = MainMenu::_setting.val;
 		break;
 		case SETTING_NOW_YEAR10:
 		invert_start = 8;
 		invert_length = 1;
-		DateSettingsMenu::_dateDataSet.Year = (setting.val * 10) + DateSettingsMenu::_dateDataSet.Year % 10;
+		DateSettingsMenu::_dateDataSet.Year = (MainMenu::_setting.val * 10) + DateSettingsMenu::_dateDataSet.Year % 10;
 		break;
 		case SETTING_NOW_YEAR1:
 		invert_start = 9;
 		invert_length = 1;
-		DateSettingsMenu::_dateDataSet.Year = ((DateSettingsMenu::_dateDataSet.Year / 10) * 10) + setting.val;
+		DateSettingsMenu::_dateDataSet.Year = ((DateSettingsMenu::_dateDataSet.Year / 10) * 10) + MainMenu::_setting.val;
 		break;
 		default:
 		// Remove inversion
@@ -105,7 +103,7 @@ void DateSettingsMenu::dateDraw()
 byte getMaxValForSetting()
 {
 	byte max;
-	switch(setting.now)
+	switch(MainMenu::_setting.now)
 	{
 		case SETTING_NOW_DAY10:
 		max = 3;
@@ -141,9 +139,9 @@ byte getMaxValForSetting()
 //------------------------------
 void dateDataUp()
 {
-	setting.val++;
-	if(setting.val > getMaxValForSetting())
-	setting.val = 0;
+	MainMenu::_setting.val++;
+	if(MainMenu::_setting.val > getMaxValForSetting())
+	MainMenu::_setting.val = 0;
 }
 
 //--------------------------------
@@ -151,10 +149,10 @@ void dateDataUp()
 //--------------------------------
 void dateDataDown()
 {
-	setting.val--;
+	MainMenu::_setting.val--;
 	byte max = getMaxValForSetting();
-	if(setting.val > max)
-	setting.val = max;
+	if(MainMenu::_setting.val > max)
+	MainMenu::_setting.val = max;
 }
 
 //----------------------------------------------------
@@ -168,32 +166,32 @@ void DateSettingsMenu::selectDate()
 	_menu->setUpFunc(dateDataDown);
 	_menu->setDrawFunc(dateDraw);
 
-	switch(setting.now)
+	switch(MainMenu::_setting.now)
 	{
 		case SETTING_NOW_NONE:
-		setting.now = SETTING_NOW_DAY10;
-		setting.val = DateSettingsMenu::_dateDataSet.Day / 10;
+		MainMenu::_setting.now = SETTING_NOW_DAY10;
+		MainMenu::_setting.val = DateSettingsMenu::_dateDataSet.Day / 10;
 		break;
 		case SETTING_NOW_DAY10:
 		{
 			byte mod = DateSettingsMenu::_dateDataSet.Day % 10;
-			DateSettingsMenu::_dateDataSet.Day = (setting.val * 10) + mod;
-			setting.now = SETTING_NOW_DAY1;
-			setting.val = mod;
+			DateSettingsMenu::_dateDataSet.Day = (MainMenu::_setting.val * 10) + mod;
+			MainMenu::_setting.now = SETTING_NOW_DAY1;
+			MainMenu::_setting.val = mod;
 		}
 		break;
 		case SETTING_NOW_DAY1:
-		DateSettingsMenu::_dateDataSet.Day = ((DateSettingsMenu::_dateDataSet.Day / 10) * 10) + setting.val;
+		DateSettingsMenu::_dateDataSet.Day = ((DateSettingsMenu::_dateDataSet.Day / 10) * 10) + MainMenu::_setting.val;
 		if(DateSettingsMenu::_dateDataSet.Day < 1)
 		DateSettingsMenu::_dateDataSet.Day = 1;
 		else if(DateSettingsMenu::_dateDataSet.Day > 31)
 		DateSettingsMenu::_dateDataSet.Day = 31;
-		setting.now = SETTING_NOW_MONTH;
-		setting.val = DateSettingsMenu::_dateDataSet.Month;
+		MainMenu::_setting.now = SETTING_NOW_MONTH;
+		MainMenu::_setting.val = DateSettingsMenu::_dateDataSet.Month;
 		break;
 		case SETTING_NOW_MONTH:
 		{
-			DateSettingsMenu::_dateDataSet.Month = setting.val;
+			DateSettingsMenu::_dateDataSet.Month = MainMenu::_setting.val;
 			byte maxDays = 31;
 			byte mnth = DateSettingsMenu::_dateDataSet.Month;
 			if(mnth == 3 || mnth == 5 || mnth == 8 || mnth == 10)
@@ -202,22 +200,22 @@ void DateSettingsMenu::selectDate()
 			maxDays = LEAP_YEAR(DateSettingsMenu::_dateDataSet.Year) ? 29 : 28;
 			if(DateSettingsMenu::_dateDataSet.Day > maxDays)
 			DateSettingsMenu::_dateDataSet.Day = maxDays;
-			setting.now = SETTING_NOW_YEAR10;
-			setting.val = DateSettingsMenu::_dateDataSet.Year / 10;
+			MainMenu::_setting.now = SETTING_NOW_YEAR10;
+			MainMenu::_setting.val = DateSettingsMenu::_dateDataSet.Year / 10;
 		}
 		break;
 		case SETTING_NOW_YEAR10:
 		{
 			byte mod = DateSettingsMenu::_dateDataSet.Year % 10;
-			DateSettingsMenu::_dateDataSet.Year = (setting.val * 10) + mod;
-			setting.now = SETTING_NOW_YEAR1;
-			setting.val = mod;
+			DateSettingsMenu::_dateDataSet.Year = (MainMenu::_setting.val * 10) + mod;
+			MainMenu::_setting.now = SETTING_NOW_YEAR1;
+			MainMenu::_setting.val = mod;
 		}
 		break;
 		default:
-		DateSettingsMenu::_dateDataSet.Year = ((DateSettingsMenu::_dateDataSet.Year / 10) * 10) + setting.val;
+		DateSettingsMenu::_dateDataSet.Year = ((DateSettingsMenu::_dateDataSet.Year / 10) * 10) + MainMenu::_setting.val;
 		DateSettingsMenu::_dateDataSet.Wday = time_dow(DateSettingsMenu::_dateDataSet.Year + 2000, DateSettingsMenu::_dateDataSet.Month + 1, DateSettingsMenu::_dateDataSet.Day);
-		setting.now = SETTING_NOW_NONE;
+		MainMenu::_setting.now = SETTING_NOW_NONE;
 
 		// Go back to menu after finishing the editing of the date.
 		// TODO - Find a nicer way to do this................
@@ -283,7 +281,7 @@ void DateSettingsMenu::dateUpFunc()
 void DateSettingsMenu::saveDateFunc()
 {
 	// Write the time.
-	MyDS3232.write(DateSettingsMenu::_dateDataSet);
+	ds3232RTC.write(DateSettingsMenu::_dateDataSet);
 
 	// Change the option text to Saved
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_DATE_SAVE_INDEX, PSTR("Saved"), NULL, DateSettingsMenu::saveDateFunc); // Position 3
