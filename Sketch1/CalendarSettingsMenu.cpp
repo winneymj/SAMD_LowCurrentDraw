@@ -17,14 +17,13 @@
 #include "MainMenu.h"
 #include "CalendarSettingsMenu.h"
 #include "cour8pt7b.h"
+#include "GlobalSettings.h"
 
 extern Adafruit_SharpMem display;
 extern DS3232RTC ds3232RTC;
 
 CalendarSettingsMenu calendarSettingMenu;
 WatchMenu *CalendarSettingsMenu::_menu = new WatchMenu(display);
-byte CalendarSettingsMenu::_calendarDayOffWeek = 0;
-bool CalendarSettingsMenu::_calendarGrid = true; // Display grid by default.
 
 void CalendarSettingsMenu::calendarFunc()
 {
@@ -34,7 +33,7 @@ void CalendarSettingsMenu::calendarFunc()
 	_menu->createMenu(MENU_MAIN_INDEX, 4, PSTR("<CALENDAR>"), MENU_TYPE_STR, CalendarSettingsMenu::calendarDownFunc, CalendarSettingsMenu::calendarUpFunc);
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_CALENDAR_SAVE_INDEX, PSTR("Save"), NULL, CalendarSettingsMenu::saveCalendarFunc);
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_CALENDAR_EXIT_INDEX, PSTR("Exit"), NULL, CalendarSettingsMenu::calendarBack);
-	_menu->invertDisplay(MainMenu::_inverted);
+	_menu->invertDisplay(GlobalSettings::_inverted);
 
 	calendarSettingMenu.showCalendarGridOptions();
 	calendarSettingMenu.showCalendarStartDayOptions();
@@ -45,7 +44,7 @@ void CalendarSettingsMenu::calendarFunc()
 	// Point to menu
 	MainMenu::_currentMenu = _menu;
 
-	display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE); // Clear bottom of display
+	display.fillRect(0, 64, 128, 128, GlobalSettings::_inverted ? BLACK : WHITE); // Clear bottom of display
 }
 
 void CalendarSettingsMenu::calendarBack()
@@ -56,13 +55,13 @@ void CalendarSettingsMenu::calendarBack()
 
 void CalendarSettingsMenu::calendarGridDraw()
 {
-	_calendarGrid = MainMenu::_setting.val;
-	calendarSettingMenu.showCalendarGridOptions(6, _calendarGrid ? 2 : 3); // Highlight 2(on), 3(off)
+	GlobalSettings::_calendarGrid = MainMenu::_setting.val;
+	calendarSettingMenu.showCalendarGridOptions(6, GlobalSettings::_calendarGrid ? 2 : 3); // Highlight 2(on), 3(off)
 }
 
 void CalendarSettingsMenu::calendarStartDayDraw()
 {
-	_calendarDayOffWeek = MainMenu::_setting.val;
+	GlobalSettings::_calendarDayOffWeek = MainMenu::_setting.val;
 	calendarSettingMenu.showCalendarStartDayOptions(6, 3);
 }
 
@@ -110,12 +109,12 @@ void CalendarSettingsMenu::selectCalendarGrid()
 	{
 		case SETTING_CALENDAR_NOW_NONE:
 		{
-			MainMenu::_setting.val = _calendarGrid;
+			MainMenu::_setting.val = GlobalSettings::_calendarGrid;
 			MainMenu::_setting.now = SETTING_CALENDAR_GRID_ONOFF;
 			break;
 		}
 		default:
-		_calendarGrid = MainMenu::_setting.val;
+		GlobalSettings::_calendarGrid = MainMenu::_setting.val;
 		MainMenu::_setting.now = SETTING_CALENDAR_NOW_NONE;
 
 		// Go back to menu after finishing the editing of the date.
@@ -140,11 +139,11 @@ void CalendarSettingsMenu::selectCalendarStartDay()
 	switch(MainMenu::_setting.now)
 	{
 		case SETTING_CALENDAR_NOW_NONE:
-		MainMenu::_setting.val = _calendarDayOffWeek;
+		MainMenu::_setting.val = GlobalSettings::_calendarDayOffWeek;
 		MainMenu::_setting.now = SETTING_CALENDAR_STARTDAY;
 		break;
 		default:
-		_calendarDayOffWeek = MainMenu::_setting.val;
+		GlobalSettings::_calendarDayOffWeek = MainMenu::_setting.val;
 		MainMenu::_setting.now = SETTING_CALENDAR_NOW_NONE;
 		
 		// Go back to menu after finishing the editing of the date.
@@ -168,7 +167,7 @@ void CalendarSettingsMenu::showCalendarGridOptions()
 void CalendarSettingsMenu::showCalendarGridOptions(int16_t invert_start, int16_t invert_length)
 {
 	char buff[21];
-	sprintf_P(buff, PSTR("Grid: %s"), _calendarGrid ? PSTR("On") : PSTR("Off"));
+	sprintf_P(buff, PSTR("Grid: %s"), GlobalSettings::_calendarGrid ? PSTR("On") : PSTR("Off"));
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_CALENDAR_GRID_INDEX, invert_start, invert_length, buff, NULL, CalendarSettingsMenu::selectCalendarGrid);
 }
 
@@ -180,7 +179,7 @@ void CalendarSettingsMenu::showCalendarStartDayOptions()
 void CalendarSettingsMenu::showCalendarStartDayOptions(int16_t invert_start, int16_t invert_length)
 {
 	char buff[21];
-	sprintf_P(buff, PSTR("Day : %s"), dayOfWeekLong[_calendarDayOffWeek]);
+	sprintf_P(buff, PSTR("Day : %s"), dayOfWeekLong[GlobalSettings::_calendarDayOffWeek]);
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_CALENDAR_STARTDAY_INDEX, invert_start, invert_length, buff, NULL, CalendarSettingsMenu::selectCalendarStartDay);
 }
 

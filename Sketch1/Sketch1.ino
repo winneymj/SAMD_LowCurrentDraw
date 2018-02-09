@@ -16,6 +16,7 @@
 #include "defs.h"
 #include "watchface.h"
 #include "MainMenu.h"
+#include "GlobalSettings.h"
 
 #ifndef __AVR__
 #include <SPI.h>
@@ -286,7 +287,7 @@ bool updateDisplay()
 		display.clearDisplayBuffer();
 
 		// See if inverted and set display
-		watchFace.invert(MainMenu::_inverted);
+		watchFace.invert(GlobalSettings::_inverted);
 		
 		watchFace.displayTime();
 

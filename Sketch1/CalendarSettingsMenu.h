@@ -36,9 +36,6 @@ public:
 	
 public:
 	static WatchMenu* _menu;
-	static byte _calendarDayOffWeek;
-	static bool _calendarGrid; // Display grid by default.
-
 };
 
 

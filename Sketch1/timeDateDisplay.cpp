@@ -18,8 +18,9 @@
 #include "defs.h"
 #include "stringUtils.h"
 #include "timeDateDisplay.h"
+#include "GlobalSettings.h"
 
-TimeDateDisplay::TimeDateDisplay(Adafruit_SharpMem& display) : _invert(false), _display(display), _font(NULL)
+TimeDateDisplay::TimeDateDisplay(Adafruit_SharpMem& display) : _display(display), _font(NULL)
 {
 }
 
@@ -48,29 +49,24 @@ void TimeDateDisplay::setTempType(eTempConversion type)
 	_tempType = type;
 }
 
-void TimeDateDisplay::invert(bool invert)
-{
-	_invert = invert;
-}
-
 void TimeDateDisplay::displayLongDate(tmElements_t currTime)
 {
 	_display.setTextSize(1);
 	_display.setFont(_dateFont);
-	_display.setTextColor(_invert ? WHITE: BLACK, _invert ? BLACK : WHITE);
+	_display.setTextColor(GlobalSettings::_inverted ? WHITE: BLACK, GlobalSettings::_inverted ? BLACK : WHITE);
 
 	char timeBuff[32] = {0};
 	sprintf_P(timeBuff, PSTR("%s %u, %u"), months[currTime.Month], currTime.Day, currTime.Year + 2000);
 
 	_display.setCursor(64, 60);
-	stringUtils::printCenterString(_display, _invert, timeBuff);
+	stringUtils::printCenterString(_display, GlobalSettings::_inverted, timeBuff);
 }
 
 void TimeDateDisplay::displayTime(tmElements_t currTime)
 {
 	_display.setTextSize(1);
 	_display.setFont(_font);
-	_display.setTextColor(_invert ? WHITE: BLACK, _invert ? BLACK : WHITE);
+	_display.setTextColor(GlobalSettings::_inverted ? WHITE: BLACK, GlobalSettings::_inverted ? BLACK : WHITE);
 	
 	char timeBuff[6] = {0};
 #ifdef EVERY_SECOND
@@ -87,7 +83,7 @@ void TimeDateDisplay::displayTime(tmElements_t currTime)
 void TimeDateDisplay::displayDateTime(tmElements_t currTime)
 {
 	// Clear down entire screen
-	_display.fillRect(0, 0, _display.width(), _display.height() / 2, _invert ? BLACK : WHITE);
+	_display.fillRect(0, 0, _display.width(), _display.height() / 2, GlobalSettings::_inverted ? BLACK : WHITE);
 
 	displayTime(currTime);
 	displayLongDate(currTime);
@@ -97,7 +93,7 @@ void TimeDateDisplay::displayLocalTemp(float temp)
 {
 	_display.setTextSize(1);
 	_display.setFont(_tempFont);
-	_display.setTextColor(_invert ? WHITE: BLACK, _invert ? BLACK : WHITE);
+	_display.setTextColor(GlobalSettings::_inverted ? WHITE: BLACK, GlobalSettings::_inverted ? BLACK : WHITE);
 
 	_display.setCursor(75, 8);
 	char tempBuff[8] = {0};

@@ -32,10 +32,8 @@ class Calendar
 public:
 	Calendar(Adafruit_SharpMem& display);
 	void displayCalendar(tmElements_t currTime);
-	void invert(bool invert);
 	void setFont(const GFXfont* font);
 	void setDOWFont(const GFXfont* font);
-	void displayGrid(bool grid);
 
 private:
 	void displayDates(tmElements_t currTime);
@@ -46,12 +44,9 @@ private:
 
 
 private:
-	bool _invert;
 	Adafruit_SharpMem& _display;
 	const GFXfont* _font;
 	const GFXfont* _dowfont;
-	bool _displayGrid;
-	uint8_t _calendarDayOffWeek;
 };
 
 

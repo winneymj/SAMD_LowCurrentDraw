@@ -46,7 +46,4 @@ public:
 	static tmElements_t _dateDataSet;
 };
 
-// leap year calculator expects year argument as years offset from 1970
-#define LEAP_YEAR(Y)     ( ((1970+Y)>0) && !((1970+Y)%4) && ( ((1970+Y)%100) || !((1970+Y)%400) ) )
-
 #endif /* DATESETTINGSMENU_H_ */

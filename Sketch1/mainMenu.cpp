@@ -27,6 +27,7 @@
 #include "InvertSettingsMenu.h"
 #include "CalendarSettingsMenu.h"
 #include "cour6pt7b.h"
+#include "GlobalSettings.h"
 
 // Externals
 extern long keyPressTimeStamp;
@@ -42,7 +43,6 @@ s_menuNowSetting MainMenu::_setting;
 WatchMenu *MainMenu::_menu = new WatchMenu(display);
 WatchMenu *MainMenu::_currentMenu = MainMenu::_menu;
 bool MainMenu::_menuExit = false;
-bool MainMenu::_inverted = false;
 
 void MainMenu::initialize()
 {
@@ -89,14 +89,14 @@ void MainMenu::draw()
 //		rtcRead = !rtcRead;
 
 		// Clear bottom of screen
-		display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE);
+		display.fillRect(0, 64, 128, 128, GlobalSettings::_inverted ? BLACK : WHITE);
 		bool animating = _currentMenu->updateMenu();
 		display.refresh();
 
 		while (animating)
 		{
 			// Clear bottom of screen
-			display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE);
+			display.fillRect(0, 64, 128, 128, GlobalSettings::_inverted ? BLACK : WHITE);
 			animating = _currentMenu->updateMenu();
 			display.refresh();
 //			delay(20);
@@ -154,7 +154,7 @@ void MainMenu::draw()
 void MainMenu::exitMenu()
 {
 	// Clear down bottom of the screen
-	display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE);
+	display.fillRect(0, 64, 128, 128, GlobalSettings::_inverted ? BLACK : WHITE);
 
 	// Set flag to make sure we exit the while loop.
 	_menuExit = true;

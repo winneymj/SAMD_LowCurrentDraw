@@ -4,6 +4,7 @@
 
 #include "MainMenu.h"
 #include "InvertSettingsMenu.h"
+#include "GlobalSettings.h"
 
 
 InvertSettingsMenu invertSettingsMenu;
@@ -12,6 +13,6 @@ InvertSettingsMenu invertSettingsMenu;
 //------------------------------------------------------------
 void InvertSettingsMenu::invertFunc()
 {
-	MainMenu::_inverted = !MainMenu::_inverted;
-	MainMenu::_currentMenu->invertDisplay(MainMenu::_inverted);
+	GlobalSettings::_inverted = !GlobalSettings::_inverted;
+	MainMenu::_currentMenu->invertDisplay(GlobalSettings::_inverted);
 }

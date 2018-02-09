@@ -45,7 +45,6 @@
 class MainMenu
 {
 public:
-	static bool _inverted;
 	static s_menuNowSetting _setting;
 	static WatchMenu *_currentMenu;
 	static WatchMenu *_menu;

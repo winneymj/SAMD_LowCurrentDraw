@@ -62,8 +62,11 @@
 
 #define AMPM  5 // Bit 5 of Hour byte
 
-enum eHR1224 { HR12, HR24 };
-enum eAMPM { HRAM, HRPM };
+enum class eHR1224 { HR12, HR24 };
+enum class eAMPM { HRAM, HRPM };
+
+// leap year calculator expects year argument as years offset from 1970
+#define LEAP_YEAR(Y)     ( ((1970+Y)>0) && !((1970+Y)%4) && ( ((1970+Y)%100) || !((1970+Y)%400) ) )
 
 //----------------------------
 

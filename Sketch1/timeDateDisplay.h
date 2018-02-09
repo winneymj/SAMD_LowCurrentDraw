@@ -26,7 +26,6 @@ public:
 	void setTempFont(const GFXfont* font);
 	void setTempDegreeFont(const GFXfont* font);
 	void setTempType(eTempConversion type);
-	void invert(bool invert);
 
 private:
 	void displayLongDate(tmElements_t currTime);
@@ -35,7 +34,6 @@ private:
 
 	
 private:
-	bool _invert;
 	Adafruit_SharpMem& _display;
 	const GFXfont* _font;
 	const GFXfont* _dateFont;

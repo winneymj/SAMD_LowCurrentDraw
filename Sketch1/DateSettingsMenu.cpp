@@ -10,6 +10,7 @@
 #include "MainMenu.h"
 #include "DateSettingsMenu.h"
 #include "cour8pt7b.h"
+#include "GlobalSettings.h"
 
 extern Adafruit_SharpMem display;
 extern DS3232RTC ds3232RTC;
@@ -36,7 +37,7 @@ void DateSettingsMenu::dateFunc()
 	_menu->createMenu(MENU_MAIN_INDEX, 3, PSTR("<DATE>"), MENU_TYPE_STR, DateSettingsMenu::dateDownFunc, DateSettingsMenu::dateUpFunc);
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_DATE_SAVE_INDEX, PSTR("Save"), NULL, DateSettingsMenu::saveDateFunc);
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_DATE_EXIT_INDEX, PSTR("Exit"), NULL, DateSettingsMenu::dateBack);
-	_menu->invertDisplay(MainMenu::_inverted);
+	_menu->invertDisplay(GlobalSettings::_inverted);
 
 	dateSettingMenu.showDateStr();
 
@@ -46,7 +47,7 @@ void DateSettingsMenu::dateFunc()
 	// Point to date/time menu
 	MainMenu::_currentMenu = _menu;
 
-	display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE); // Clear bottom of display
+	display.fillRect(0, 64, 128, 128, GlobalSettings::_inverted ? BLACK : WHITE); // Clear bottom of display
 }
 
 void DateSettingsMenu::dateBack()

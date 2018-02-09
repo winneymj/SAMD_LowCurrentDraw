@@ -19,35 +19,24 @@
 #include "defs.h"
 #include "stringUtils.h"
 #include "Calendar.h"
+#include "GlobalSettings.h"
 
-Calendar::Calendar(Adafruit_SharpMem& display) : _display(display), 
-	_invert(false), 
-	_displayGrid(true), 
-	_calendarDayOffWeek(0) // Default to Monday
+Calendar::Calendar(Adafruit_SharpMem& display): 
+	_display(display)
 {
 }
 
 void Calendar::displayCalendar(tmElements_t currTime)
 {
 	// Clear down bottom area of the screen
-	_display.fillRect(0, _display.height() / 2, _display.width(), _display.height(), _invert ? BLACK : WHITE);
+	_display.fillRect(0, _display.height() / 2, _display.width(), _display.height(), GlobalSettings::_inverted ? BLACK : WHITE);
 
 	displayDOW();
 	displayDates(currTime);
-	if (_displayGrid) // Display the grid ?
+	if (GlobalSettings::_calendarGrid) // Display the grid ?
 	{
 		displayCalendarGrid();
 	}
-}
-
-void Calendar::invert(bool invert)
-{
-	_invert = invert;
-}
-
-void Calendar::displayGrid(bool grid)
-{
-	_displayGrid = grid;
 }
 
 void Calendar::setFont(const GFXfont* font)
@@ -64,7 +53,7 @@ void Calendar::displayDates(tmElements_t currTime)
 {
 	_display.setTextSize(1);
 	_display.setFont(_font);
-	_display.setTextColor(_invert ? WHITE: BLACK, _invert ? BLACK : WHITE);
+	_display.setTextColor(GlobalSettings::_inverted ? WHITE: BLACK, GlobalSettings::_inverted ? BLACK : WHITE);
 
 	// Get the date to start printing in the top left of calendar, Last StartDay.
 	uint8_t startDate = getCalendarStartDate(currTime);
@@ -98,20 +87,20 @@ void Calendar::displayDates(tmElements_t currTime)
 			{
 				int16_t x1 = CAL_XPOS + (CAL_CELL_WIDTH * (column - 1));
 				int16_t y1 = CAL_YPOS + (CAL_CELL_HEIGHT * row);
-				_display.fillRect(x1, y1, CAL_CELL_WIDTH, CAL_CELL_HEIGHT, _invert ? WHITE : BLACK);
-				_display.setTextColor(_invert ? BLACK: WHITE, _invert ? WHITE : BLACK);
+				_display.fillRect(x1, y1, CAL_CELL_WIDTH, CAL_CELL_HEIGHT, GlobalSettings::_inverted ? WHITE : BLACK);
+				_display.setTextColor(GlobalSettings::_inverted ? BLACK: WHITE, GlobalSettings::_inverted ? WHITE : BLACK);
 				// Output the date
-				stringUtils::printCenterString(_display, !_invert, weekStr);
+				stringUtils::printCenterString(_display, !GlobalSettings::_inverted, weekStr);
 			}
 			else
 			{
 				// Output the date
-				stringUtils::printCenterString(_display, _invert, weekStr);
+				stringUtils::printCenterString(_display, GlobalSettings::_inverted, weekStr);
 			}
 
 			if (dom == startDate)
 			{
-				_display.setTextColor(_invert ? WHITE: BLACK, _invert ? BLACK : WHITE);
+				_display.setTextColor(GlobalSettings::_inverted ? WHITE: BLACK, GlobalSettings::_inverted ? BLACK : WHITE);
 			}
 			startDate++;
 			// Check if greater then end of month date and set to 1
@@ -136,14 +125,14 @@ void Calendar::displayDOW()
 {
 	_display.setTextSize(1);
 	_display.setFont(_dowfont);
-	_display.setTextColor(_invert ? WHITE: BLACK, _invert ? BLACK : WHITE);
+	_display.setTextColor(GlobalSettings::_inverted ? WHITE: BLACK, GlobalSettings::_inverted ? BLACK : WHITE);
 
-	int arrIndex = _calendarDayOffWeek;
+	int arrIndex = GlobalSettings::_calendarDayOffWeek;
 	for(int loop = 0; loop < CAL_COLUMNS; loop++)
 	{
 		uint8_t cellCenter = (CAL_XPOS + 1) + ((CAL_CELL_WIDTH + 1 )/ 2.0) + (CAL_CELL_WIDTH * loop);
 		_display.setCursor(cellCenter, CAL_YPOS + CAL_CELL_HEIGHT - 2);
-		stringUtils::printCenterString(_display, _invert, (char *)dayOfWeek[arrIndex]);
+		stringUtils::printCenterString(_display, GlobalSettings::_inverted, (char *)dayOfWeek[arrIndex]);
 		arrIndex++;
 		arrIndex %= 7;  // Days in week
 	}
@@ -154,13 +143,13 @@ void Calendar::displayCalendarGrid()
 	// Rows
 	for(int loop = 0; loop < CAL_ROWS + 1; loop++)
 	{
-		_display.writeLine(CAL_XPOS, CAL_YPOS + (CAL_CELL_HEIGHT * loop), CAL_XPOS + (CAL_CELL_WIDTH * CAL_COLUMNS), CAL_YPOS + (CAL_CELL_HEIGHT * loop), _invert ? WHITE : BLACK);
+		_display.writeLine(CAL_XPOS, CAL_YPOS + (CAL_CELL_HEIGHT * loop), CAL_XPOS + (CAL_CELL_WIDTH * CAL_COLUMNS), CAL_YPOS + (CAL_CELL_HEIGHT * loop), GlobalSettings::_inverted ? WHITE : BLACK);
 	}
 	
 	// Columns
 	for(int loop = 0; loop < CAL_COLUMNS + 1; loop++)
 	{
-		_display.writeLine(CAL_XPOS + (CAL_CELL_WIDTH * loop), CAL_YPOS, CAL_XPOS + (CAL_CELL_WIDTH * loop), CAL_YPOS + (CAL_CELL_HEIGHT * CAL_ROWS) , _invert ? WHITE : BLACK);
+		_display.writeLine(CAL_XPOS + (CAL_CELL_WIDTH * loop), CAL_YPOS, CAL_XPOS + (CAL_CELL_WIDTH * loop), CAL_YPOS + (CAL_CELL_HEIGHT * CAL_ROWS) , GlobalSettings::_inverted ? WHITE : BLACK);
 	}
 }
 
@@ -171,7 +160,7 @@ uint8_t Calendar::getCalendarStartDate(tmElements_t currTime)
 	uint8_t dom = currTime.Day; // Day in Month (1..28/29/30/31)
 
 	// Calculate date on previous calendarDayOffWeek
-	int8_t dayOffset = (currDow - _calendarDayOffWeek + 7) % 7;
+	int8_t dayOffset = (currDow - GlobalSettings::_calendarDayOffWeek + 7) % 7;
 	int8_t lastDom = dom - dayOffset;
 	uint8_t daysLastMonth = 0;
 	

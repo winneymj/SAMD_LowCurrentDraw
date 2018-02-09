@@ -22,6 +22,7 @@
 #include "cour6pt7b.h"
 #include "watchface.h"
 #include "CalendarSettingsMenu.h"
+#include "GlobalSettings.h"
 
 WatchFace::WatchFace(Adafruit_SharpMem& display, DS3232RTC& ds3232RTC) : 
 	_display(display),
@@ -45,8 +46,6 @@ void WatchFace::displayCalendar()
 	
 	_calendar.setFont(&cour6pt7b);
 	_calendar.setDOWFont(&courbd6pt7b);
-	_calendar.invert(_invert);
-	_calendar.displayGrid(CalendarSettingsMenu::_calendarGrid);
 
 	_calendar.displayCalendar(currTime);
 }
@@ -67,7 +66,6 @@ void WatchFace::displayTime()
 	// Update the display
 	_timeDate.setFont(&arialn26pt7b);
 	_timeDate.setDateFont(&courbd6pt7b);
-	_timeDate.invert(_invert);
 	_timeDate.displayDateTime(currTime);
 	
 //	displayTime(currTime);

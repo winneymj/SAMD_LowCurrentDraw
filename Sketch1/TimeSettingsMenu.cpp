@@ -10,6 +10,7 @@
 #include "MainMenu.h"
 #include "TimeSettingsMenu.h"
 #include "cour8pt7b.h"
+#include "GlobalSettings.h"
 
 extern Adafruit_SharpMem display;
 extern DS3232RTC ds3232RTC;
@@ -32,8 +33,8 @@ void TimeSettingsMenu::timeFunc()
 
 	// Create copy of current time & date
 	memcpy(&TimeSettingsMenu::_timeDataSet, &currTime, sizeof(tmElements_t));
-	TimeSettingsMenu::_hr1224 = (ds3232RTC.readRTC(RTC_HOURS) & _BV(HR1224)) ? HR12 : HR24; // Hr
-	TimeSettingsMenu::_amPm = (ds3232RTC.readRTC(RTC_HOURS) & _BV(AMPM)) ? HRPM : HRAM; // Morning/Afternoon
+	TimeSettingsMenu::_hr1224 = (ds3232RTC.readRTC(RTC_HOURS) & _BV(HR1224)) ? eHR1224::HR12 : eHR1224::HR24; // Hr
+	TimeSettingsMenu::_amPm = (ds3232RTC.readRTC(RTC_HOURS) & _BV(AMPM)) ? eAMPM::HRPM : eAMPM::HRAM; // Morning/Afternoon
 
 	_menu->initMenu(1);  // Create a menu system with ? menu rows
 	_menu->setTextSize(1);
@@ -41,7 +42,7 @@ void TimeSettingsMenu::timeFunc()
 	_menu->createMenu(MENU_MAIN_INDEX, 4, PSTR("<DATE/TIME>"), MENU_TYPE_STR, TimeSettingsMenu::timeDownFunc, TimeSettingsMenu::timeUpFunc);
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_TIME_SAVE_INDEX, PSTR("Save"), NULL, TimeSettingsMenu::saveTimeFunc);
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_TIME_EXIT_INDEX, PSTR("Exit"), NULL, timeBack);
-	_menu->invertDisplay(MainMenu::_inverted);
+	_menu->invertDisplay(GlobalSettings::_inverted);
 
 	timeSettingMenu.showTimeStr();
 	timeSettingMenu.show1224HrStr();
@@ -52,7 +53,7 @@ void TimeSettingsMenu::timeFunc()
 	// Point to date/time menu
 	MainMenu::_currentMenu = _menu;
 
-	display.fillRect(0, 64, 128, 128, MainMenu::_inverted ? BLACK : WHITE); // Clear display
+	display.fillRect(0, 64, 128, 128, GlobalSettings::_inverted ? BLACK : WHITE); // Clear display
 }
 
 void TimeSettingsMenu::timeBack()
@@ -67,10 +68,10 @@ byte getMaxValForTimeSetting()
 	switch(MainMenu::_setting.now)
 	{
 		case SETTING_NOW_10HOUR:
-		max = (TimeSettingsMenu::_hr1224 ==  HR12) ? 1 : 2;
+		max = (TimeSettingsMenu::_hr1224 ==  eHR1224::HR12) ? 1 : 2;
 		break;
 		case SETTING_NOW_1HOUR:
-		max = (TimeSettingsMenu::_hr1224 ==  HR12) ? 2 : 9;
+		max = (TimeSettingsMenu::_hr1224 ==  eHR1224::HR12) ? 2 : 9;
 		break;
 		case SETTING_NOW_10MIN:
 		max = 5;
@@ -124,7 +125,7 @@ void TimeSettingsMenu::select1224hr()
 	{
 		case SETTING_NOW_NONE:
 		{
-			MainMenu::_setting.val = TimeSettingsMenu::_hr1224;
+			MainMenu::_setting.val = static_cast<uint8_t>(TimeSettingsMenu::_hr1224);
 			MainMenu::_setting.now = SETTING_NOW_24HR;
 			break;
 		}
@@ -200,10 +201,10 @@ void TimeSettingsMenu::selectTime()
 			}
 
 			// If 12 hr clock then move on to AM/PM selection else end selection.
-			if (TimeSettingsMenu::_hr1224 == HR12)
+			if (TimeSettingsMenu::_hr1224 == eHR1224::HR12)
 			{
 				MainMenu::_setting.now = SETTING_NOW_AMHR;
-				MainMenu::_setting.val = TimeSettingsMenu::_amPm;
+				MainMenu::_setting.val = static_cast<uint8_t>(TimeSettingsMenu::_amPm);
 			}
 			else
 			{
@@ -217,7 +218,7 @@ void TimeSettingsMenu::selectTime()
 		}
 		break;
 		default:
-		if (TimeSettingsMenu::_hr1224 == HR12)
+		if (TimeSettingsMenu::_hr1224 == eHR1224::HR12)
 		{
 			TimeSettingsMenu::_amPm = (eAMPM)MainMenu::_setting.val;
 		}
@@ -283,10 +284,10 @@ void makeTimeStr(char* buff)
 {
 	switch(TimeSettingsMenu::_hr1224)
 	{
-		case HR12:
-		sprintf_P(buff, PSTR("%1s%02u:%02u %2s"), "", TimeSettingsMenu::_timeDataSet.Hour, TimeSettingsMenu::_timeDataSet.Minute, (TimeSettingsMenu::_amPm == HRAM) ? "AM" : "PM");
+		case eHR1224::HR12:
+		sprintf_P(buff, PSTR("%1s%02u:%02u %2s"), "", TimeSettingsMenu::_timeDataSet.Hour, TimeSettingsMenu::_timeDataSet.Minute, (TimeSettingsMenu::_amPm == eAMPM::HRAM) ? "AM" : "PM");
 		break;
-		case HR24:
+		case eHR1224::HR24:
 		sprintf_P(buff, PSTR("%1s%02u:%02u %2s"), "", TimeSettingsMenu::_timeDataSet.Hour, TimeSettingsMenu::_timeDataSet.Minute, "");
 		break;
 	}
@@ -321,10 +322,10 @@ void TimeSettingsMenu::show1224HrStr(int16_t invert_start, int16_t invert_length
 	char buff[7] = {0};
 	switch(TimeSettingsMenu::_hr1224)
 	{
-		case HR12:
+		case eHR1224::HR12:
 		strcpy_P(buff, PSTR(" 12 hr"));
 		break;
-		case HR24:
+		case eHR1224::HR24:
 		strcpy_P(buff, PSTR(" 24 hr"));
 		break;
 	}
@@ -370,19 +371,19 @@ void TimeSettingsMenu::saveTimeFunc()
 	// Set 12 or 24 hr
 	switch(TimeSettingsMenu::_hr1224)
 	{
-		case HR12:
+		case eHR1224::HR12:
 		hrs |= _BV(HR1224); // Set bit 6
 		switch(TimeSettingsMenu::_amPm)
 		{
-			case HRPM:
+			case eAMPM::HRPM:
 			hrs |= _BV(AMPM); // Set bit 5
 			break;
-			case HRAM:
+			case eAMPM::HRAM:
 			hrs &= ~_BV(AMPM); // Clear bit 5
 			break;
 		}
 		break;
-		case HR24:
+		case eHR1224::HR24:
 		hrs &= ~_BV(HR1224); // Clear bit 6
 		break;
 	}
