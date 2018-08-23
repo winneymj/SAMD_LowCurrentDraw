@@ -3,6 +3,8 @@
  *
  * Created: 12/23/2017 6:48:21 PM
  * Author: dell
+ * Bootloader at C:\Users\dell\AppData\Local\Arduino15\packages\MattairTech_Arduino\hardware\samd\1.6.17-beta-b0\bootloaders\zero\binaries\sam_ba_MT_D21E_rev_B_SAMD21E18A.bin
+ *
  */ 
 // Button pins
 #include <Time.h>         //http://www.arduino.cc/playground/Code/Time
@@ -379,18 +381,16 @@ void loop()
 #else
 		delay(1000);
 #endif		
-
-
 		// If we got here we were woken up by interrupt
 		digitalWrite(DISPLAY_EXTMODE, LOW); // switch VCOM to software.
 
-		for (int j = 0; j < 4; j++)
-		{
-			digitalWrite(LED, HIGH);
-			delay(100);
-			digitalWrite(LED, LOW);
-			delay(100);
-		}
+		//for (int j = 0; j < 4; j++)
+		//{
+			//digitalWrite(LED, HIGH);
+			//delay(100);
+			//digitalWrite(LED, LOW);
+			//delay(100);
+		//}
 		
 		updateDisplay();
 	}

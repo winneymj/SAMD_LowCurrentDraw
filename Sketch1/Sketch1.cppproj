@@ -228,8 +228,10 @@
     <VisualMicroSettings>
       <VisualMicroSettings>
         <ValidatedAS7>1</ValidatedAS7>
-        <vm.upload.useprogrammer>1</vm.upload.useprogrammer>
+        <vm.upload.useprogrammer>0</vm.upload.useprogrammer>
         <custom_MattairTech_Arduino_mattairtech_mt_d21e_revb_samd21e18a_clock>internal</custom_MattairTech_Arduino_mattairtech_mt_d21e_revb_samd21e18a_clock>
+        <custom_MattairTech_Arduino_mattairtech_mt_d21e_revb_samd21e18a_bootloader>8kb</custom_MattairTech_Arduino_mattairtech_mt_d21e_revb_samd21e18a_bootloader>
+        <arduino.upload.port>COM4</arduino.upload.port>
       </VisualMicroSettings>
     </VisualMicroSettings>
   </PropertyGroup>
@@ -406,8 +408,10 @@
     <VisualMicroSettings>
       <VisualMicroSettings>
         <ValidatedAS7>1</ValidatedAS7>
-        <vm.upload.useprogrammer>1</vm.upload.useprogrammer>
+        <vm.upload.useprogrammer>0</vm.upload.useprogrammer>
         <custom_MattairTech_Arduino_mattairtech_mt_d21e_revb_samd21e18a_clock>internal</custom_MattairTech_Arduino_mattairtech_mt_d21e_revb_samd21e18a_clock>
+        <custom_MattairTech_Arduino_mattairtech_mt_d21e_revb_samd21e18a_bootloader>8kb</custom_MattairTech_Arduino_mattairtech_mt_d21e_revb_samd21e18a_bootloader>
+        <arduino.upload.port>COM4</arduino.upload.port>
       </VisualMicroSettings>
     </VisualMicroSettings>
   </PropertyGroup>
@@ -421,6 +425,12 @@
     <Compile Include="Calendar.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="CalendarSettingsMenu.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="CalendarSettingsMenu.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="cour6pt7b.h">
       <SubType>compile</SubType>
     </Compile>
@@ -430,16 +440,28 @@
     <Compile Include="courbd6pt7b.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="date.cpp">
+    <Compile Include="DateSettingsMenu.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="DateSettingsMenu.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="defs.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="GlobalSettings.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="GlobalSettings.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="icons.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="invert_disp.cpp">
+    <Compile Include="InvertSettingsMenu.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="InvertSettingsMenu.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="MainMenu.cpp">
