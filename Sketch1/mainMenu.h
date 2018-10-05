@@ -40,7 +40,7 @@
 #define SETTING_CALENDAR_GRID_ONOFF     1
 #define SETTING_CALENDAR_STARTDAY       2
 
-#define INACTIVITY 30000
+#define INACTIVITY 15000
 
 class MainMenu
 {

@@ -211,6 +211,18 @@ void initializePins()
 	digitalWrite(DISPLAY_EXTMODE, HIGH); // switch VCOM to external
 }
 
+void enableRTC(const bool enable)
+{
+#ifdef EVERY_SECOND
+	ds3232RTC.setAlarm(ALM1_EVERY_SECOND, 0, 0, 0);
+	ds3232RTC.alarmInterrupt(ALARM_1, enable);
+#endif
+#ifdef EVERY_MINUTE
+	ds3232RTC.setAlarm(ALM2_EVERY_MINUTE, 0, 0, 0);
+	ds3232RTC.alarmInterrupt(ALARM_2, enable);
+#endif
+}
+
 void initializeRTC()
 {
 	// Disable the RTC interrupts for the moment.
@@ -225,14 +237,7 @@ void initializeRTC()
 
 	// Set RTC to interrupt every second for now just to make sure it works.
 	// Will finally set to one minute.
-#ifdef EVERY_SECOND
-	ds3232RTC.setAlarm(ALM1_EVERY_SECOND, 0, 0, 0);
-	ds3232RTC.alarmInterrupt(ALARM_1, true);
-#endif
-#ifdef EVERY_MINUTE
-	ds3232RTC.setAlarm(ALM2_EVERY_MINUTE, 0, 0, 0);
-	ds3232RTC.alarmInterrupt(ALARM_2, true);
-#endif
+	enableRTC(true);
 
 	// Enable 32Khz output on pin 1
 	ds3232RTC.writeRTC(RTC_STATUS, ds3232RTC.readRTC(RTC_STATUS) | _BV(EN32KHZ));
@@ -313,10 +318,20 @@ bool updateDisplay()
 		pinValM = false;
 		pinValU = false;
 		pinValD = false;
+		
+		// Disable the RTC while we are in the menu
+		enableRTC(false);
 
 		// Display the menu on button press
 		watchMenu.draw();
 
+		// Point to top level menu
+		MainMenu::_currentMenu = MainMenu::_menu;
+		MainMenu::_setting = {0, 0};
+
+		// Enable the RTC now we are back to the watch face
+		enableRTC(false);
+		
 		// Back from the menu so redisplay the watch face
 		rtcFired = true;
 		updateDisplay();

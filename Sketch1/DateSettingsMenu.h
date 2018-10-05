@@ -20,10 +20,6 @@
 #define SETTING_NOW_YEAR10 8
 #define SETTING_NOW_YEAR1 9
 
-#define OPTION_DATE_DATE_INDEX 0
-#define OPTION_DATE_SAVE_INDEX 1
-#define OPTION_DATE_EXIT_INDEX 2
-
 class DateSettingsMenu
 {
 public:

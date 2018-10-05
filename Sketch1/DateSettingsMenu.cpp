@@ -16,7 +16,7 @@ extern Adafruit_SharpMem display;
 extern DS3232RTC ds3232RTC;
 
 DateSettingsMenu dateSettingMenu;
-WatchMenu *DateSettingsMenu::_menu = new WatchMenu(display);
+WatchMenu *DateSettingsMenu::_menu = nullptr;
 tmElements_t DateSettingsMenu::_dateDataSet = {0};
 
 //------------------------------------------------------------
@@ -31,7 +31,12 @@ void DateSettingsMenu::dateFunc()
 	// Create copy of current time & date
 	memcpy(&_dateDataSet, &currTime, sizeof(tmElements_t));
 
-	_menu->initMenu(1);  // Create a menu system with ? menu rows
+	if (nullptr == _menu)
+	{
+		_menu = new WatchMenu(display);
+		_menu->initMenu(1);  // Create a menu system with 1 menu rows
+	}
+	
 	_menu->setTextSize(1);
 	_menu->setFont(&cour8pt7b);
 	_menu->createMenu(MENU_MAIN_INDEX, 3, PSTR("<DATE>"), MENU_TYPE_STR, DateSettingsMenu::dateDownFunc, DateSettingsMenu::dateUpFunc);

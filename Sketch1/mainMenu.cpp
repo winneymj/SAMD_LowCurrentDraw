@@ -40,13 +40,19 @@ extern void switchTemp();
 
 
 s_menuNowSetting MainMenu::_setting;
-WatchMenu *MainMenu::_menu = new WatchMenu(display);
-WatchMenu *MainMenu::_currentMenu = MainMenu::_menu;
+WatchMenu *MainMenu::_menu = nullptr;
+WatchMenu *MainMenu::_currentMenu = nullptr;
 bool MainMenu::_menuExit = false;
 
 void MainMenu::initialize()
 {
-	_menu->initMenu(3);  // Create a menu system with ? menu rows
+	if (nullptr == _menu)
+	{
+		_menu = new WatchMenu(display);
+		_menu->initMenu(3);  // Create a menu system with 3 menu rows
+		_currentMenu = _menu;
+	}
+
 	_menu->setTextSize(1);
 	_menu->setFont(&cour6pt7b);
 
@@ -155,7 +161,8 @@ void MainMenu::exitMenu()
 {
 	// Clear down bottom of the screen
 	display.fillRect(0, 64, 128, 128, GlobalSettings::_inverted ? BLACK : WHITE);
-
+	display.refresh();
+	
 	// Set flag to make sure we exit the while loop.
 	_menuExit = true;
 }

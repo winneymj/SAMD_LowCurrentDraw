@@ -23,11 +23,16 @@ extern Adafruit_SharpMem display;
 extern DS3232RTC ds3232RTC;
 
 CalendarSettingsMenu calendarSettingMenu;
-WatchMenu *CalendarSettingsMenu::_menu = new WatchMenu(display);
+WatchMenu *CalendarSettingsMenu::_menu = nullptr;
 
 void CalendarSettingsMenu::calendarFunc()
 {
-	_menu->initMenu(1);  // Create a menu system with ? menu rows
+	if (nullptr == _menu)
+	{
+		_menu = new WatchMenu(display);
+		_menu->initMenu(1);  // Create a menu system with 1 menu rows
+	}
+
 	_menu->setTextSize(1);
 	_menu->setFont(&cour8pt7b);
 	_menu->createMenu(MENU_MAIN_INDEX, 4, PSTR("<CALENDAR>"), MENU_TYPE_STR, CalendarSettingsMenu::calendarDownFunc, CalendarSettingsMenu::calendarUpFunc);

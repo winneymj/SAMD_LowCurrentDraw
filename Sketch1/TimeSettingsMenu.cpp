@@ -17,7 +17,7 @@ extern DS3232RTC ds3232RTC;
 
 TimeSettingsMenu timeSettingMenu;
 
-WatchMenu *TimeSettingsMenu::_menu = new WatchMenu(display);
+WatchMenu *TimeSettingsMenu::_menu = nullptr;
 tmElements_t TimeSettingsMenu::_timeDataSet = {0};
 eHR1224 TimeSettingsMenu::_hr1224;
 eAMPM TimeSettingsMenu::_amPm;
@@ -36,10 +36,15 @@ void TimeSettingsMenu::timeFunc()
 	TimeSettingsMenu::_hr1224 = (ds3232RTC.readRTC(RTC_HOURS) & _BV(HR1224)) ? eHR1224::HR12 : eHR1224::HR24; // Hr
 	TimeSettingsMenu::_amPm = (ds3232RTC.readRTC(RTC_HOURS) & _BV(AMPM)) ? eAMPM::HRPM : eAMPM::HRAM; // Morning/Afternoon
 
-	_menu->initMenu(1);  // Create a menu system with ? menu rows
+	if (nullptr == _menu)
+	{
+		_menu = new WatchMenu(display);
+		_menu->initMenu(1);  // Create a menu system with 1 menu rows
+	}
+
 	_menu->setTextSize(1);
 	_menu->setFont(&cour8pt7b);
-	_menu->createMenu(MENU_MAIN_INDEX, 4, PSTR("<DATE/TIME>"), MENU_TYPE_STR, TimeSettingsMenu::timeDownFunc, TimeSettingsMenu::timeUpFunc);
+	_menu->createMenu(MENU_MAIN_INDEX, 4, PSTR("<TIME>"), MENU_TYPE_STR, TimeSettingsMenu::timeDownFunc, TimeSettingsMenu::timeUpFunc);
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_TIME_SAVE_INDEX, PSTR("Save"), NULL, TimeSettingsMenu::saveTimeFunc);
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_TIME_EXIT_INDEX, PSTR("Exit"), NULL, timeBack);
 	_menu->invertDisplay(GlobalSettings::_inverted);
@@ -48,7 +53,7 @@ void TimeSettingsMenu::timeFunc()
 	timeSettingMenu.show1224HrStr();
 
 	// Default to date selected
-	_menu->selectedOption(MENU_MAIN_INDEX, OPTION_TIME_TIME_INDEX); // Set the default selection to the date
+	_menu->selectedOption(MENU_MAIN_INDEX, OPTION_TIME_TIME_INDEX); // Set the default selection to the Time
 	
 	// Point to date/time menu
 	MainMenu::_currentMenu = _menu;
@@ -71,7 +76,7 @@ byte getMaxValForTimeSetting()
 		max = (TimeSettingsMenu::_hr1224 ==  eHR1224::HR12) ? 1 : 2;
 		break;
 		case SETTING_NOW_1HOUR:
-		max = (TimeSettingsMenu::_hr1224 ==  eHR1224::HR12) ? 2 : 9;
+		max = (TimeSettingsMenu::_hr1224 ==  eHR1224::HR12) ? 9 : 2;
 		break;
 		case SETTING_NOW_10MIN:
 		max = 5;
