@@ -330,7 +330,7 @@ bool updateDisplay()
 		MainMenu::_setting = {0, 0};
 
 		// Enable the RTC now we are back to the watch face
-		enableRTC(false);
+		enableRTC(true);
 		
 		// Back from the menu so redisplay the watch face
 		rtcFired = true;
