@@ -24,7 +24,7 @@
 #include <SPI.h>
 #endif
 	
-Adafruit_SharpMem display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS);
+Adafruit_SharpMem display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS, 128, 128);
 DS3232RTC ds3232RTC;
 RTCx MCP7941;
 WatchFace watchFace(display, ds3232RTC);
@@ -140,60 +140,60 @@ void configureInternalDFLL()
 	
 }
 
-void configure8Mhz()
-{
-  /* configure internal 8MHz oscillator to run without prescaler */
-  SYSCTRL->OSC8M.bit.PRESC = 0;
-  SYSCTRL->OSC8M.bit.ONDEMAND = 0;
-  SYSCTRL->OSC8M.bit.RUNSTDBY = 0;
-  SYSCTRL->OSC8M.bit.ENABLE = 1;
-  while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_OSC8MRDY)) {}
-
-  #if CLOCK_USE_PLL
-  /* reset the GCLK module so it is in a known state */
-  GCLK->CTRL.reg = GCLK_CTRL_SWRST;
-  while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
-
-  /* setup generic clock 1 to feed DPLL with 1MHz */
-  GCLK->GENDIV.reg = (GCLK_GENDIV_DIV(8) | GCLK_GENDIV_ID(1));
-  GCLK->GENCTRL.reg = (GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_OSC8M | GCLK_GENCTRL_ID(1));
-  GCLK->CLKCTRL.reg = (GCLK_CLKCTRL_GEN(1) | GCLK_CLKCTRL_ID(1) |	GCLK_CLKCTRL_CLKEN);
-  while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
-
-  /* Calculate LDRFRAC and LDR */
-  uint32_t reference_divider = 1;
-  uint32_t reference_frequency = 1000000;
-  uint32_t output_frequency = 48000000;
-  
-  uint32_t refclk = reference_frequency;
-  refclk = refclk / reference_divider;
-  uint32_t tmpldr = (output_frequency << 4) / refclk;
-  uint8_t tmpldrfrac = tmpldr & 0x0f;
-  tmpldr = (tmpldr >> 4) - 1;
-
-  /* enable PLL */
-  SYSCTRL->DPLLRATIO.reg = (SYSCTRL_DPLLRATIO_LDR(tmpldr));
-  SYSCTRL->DPLLCTRLB.reg = (SYSCTRL_DPLLCTRLB_REFCLK_GCLK);
-  SYSCTRL->DPLLCTRLA.reg = (SYSCTRL_DPLLCTRLA_ENABLE);
-  SYSCTRL->DPLLCTRLA.bit.ONDEMAND = 0;
-  SYSCTRL->DPLLCTRLA.bit.RUNSTDBY = 0;
-  while(!(SYSCTRL->DPLLSTATUS.reg & (SYSCTRL_DPLLSTATUS_CLKRDY | SYSCTRL_DPLLSTATUS_LOCK))) {}
-
-  /* select the PLL as source for clock generator 0 (CPU core clock) */
-  GCLK->GENDIV.reg =  (GCLK_GENDIV_DIV(CLOCK_PLL_DIV) | GCLK_GENDIV_ID(0));
-  GCLK->GENCTRL.reg = (GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_DPLL96M | GCLK_GENCTRL_ID(0));
-  
-  /** change the NVM controllers flash wait states according to the table in the SAMD21 datasheet */
-  NVMCTRL->CTRLB.bit.RWS = 3;
-
-  #else /* do not use PLL, use internal 8MHz oscillator directly Generic Clock Generator 0 */
-  GCLK->GENDIV.reg =  (GCLK_GENDIV_DIV(GENERIC_CLOCK_GENERATOR_MAIN) | GCLK_GENDIV_ID(0));
-  GCLK->GENCTRL.reg = (GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_OSC8M | GCLK_GENCTRL_ID(0));
-  #endif
-
-  /* make sure we synchronize clock generator 0 before we go on */
-  while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
-}
+//void configure8Mhz()
+//{
+  ///* configure internal 8MHz oscillator to run without prescaler */
+  //SYSCTRL->OSC8M.bit.PRESC = 0;
+  //SYSCTRL->OSC8M.bit.ONDEMAND = 0;
+  //SYSCTRL->OSC8M.bit.RUNSTDBY = 0;
+  //SYSCTRL->OSC8M.bit.ENABLE = 1;
+  //while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_OSC8MRDY)) {}
+//
+  //#if CLOCK_USE_PLL
+  ///* reset the GCLK module so it is in a known state */
+  //GCLK->CTRL.reg = GCLK_CTRL_SWRST;
+  //while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
+//
+  ///* setup generic clock 1 to feed DPLL with 1MHz */
+  //GCLK->GENDIV.reg = (GCLK_GENDIV_DIV(8) | GCLK_GENDIV_ID(1));
+  //GCLK->GENCTRL.reg = (GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_OSC8M | GCLK_GENCTRL_ID(1));
+  //GCLK->CLKCTRL.reg = (GCLK_CLKCTRL_GEN(1) | GCLK_CLKCTRL_ID(1) |	GCLK_CLKCTRL_CLKEN);
+  //while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
+//
+  ///* Calculate LDRFRAC and LDR */
+  //uint32_t reference_divider = 1;
+  //uint32_t reference_frequency = 1000000;
+  //uint32_t output_frequency = 48000000;
+  //
+  //uint32_t refclk = reference_frequency;
+  //refclk = refclk / reference_divider;
+  //uint32_t tmpldr = (output_frequency << 4) / refclk;
+  //uint8_t tmpldrfrac = tmpldr & 0x0f;
+  //tmpldr = (tmpldr >> 4) - 1;
+//
+  ///* enable PLL */
+  //SYSCTRL->DPLLRATIO.reg = (SYSCTRL_DPLLRATIO_LDR(tmpldr));
+  //SYSCTRL->DPLLCTRLB.reg = (SYSCTRL_DPLLCTRLB_REFCLK_GCLK);
+  //SYSCTRL->DPLLCTRLA.reg = (SYSCTRL_DPLLCTRLA_ENABLE);
+  //SYSCTRL->DPLLCTRLA.bit.ONDEMAND = 0;
+  //SYSCTRL->DPLLCTRLA.bit.RUNSTDBY = 0;
+  //while(!(SYSCTRL->DPLLSTATUS.reg & (SYSCTRL_DPLLSTATUS_CLKRDY | SYSCTRL_DPLLSTATUS_LOCK))) {}
+//
+  ///* select the PLL as source for clock generator 0 (CPU core clock) */
+  //GCLK->GENDIV.reg =  (GCLK_GENDIV_DIV(CLOCK_PLL_DIV) | GCLK_GENDIV_ID(0));
+  //GCLK->GENCTRL.reg = (GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_DPLL96M | GCLK_GENCTRL_ID(0));
+  //
+  ///** change the NVM controllers flash wait states according to the table in the SAMD21 datasheet */
+  //NVMCTRL->CTRLB.bit.RWS = 3;
+//
+  //#else /* do not use PLL, use internal 8MHz oscillator directly Generic Clock Generator 0 */
+  //GCLK->GENDIV.reg =  (GCLK_GENDIV_DIV(GENERIC_CLOCK_GENERATOR_MAIN) | GCLK_GENDIV_ID(0));
+  //GCLK->GENCTRL.reg = (GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_OSC8M | GCLK_GENCTRL_ID(0));
+  //#endif
+//
+  ///* make sure we synchronize clock generator 0 before we go on */
+  //while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) {}
+//}
 
 void initializePins()
 {
@@ -340,9 +340,6 @@ bool updateDisplay()
 
 void setup()
 {
-	// Reset to processors main clock to be 8Mhz clock.  
-	// Allows for very low power consumption during sleep
-//	configure8Mhz();
 	turn_off_bod33();
 	configureInternalDFLL();
 	
