@@ -357,6 +357,10 @@ void setup()
 	// Initialize the RTC's
 	initializeRTC();
 	
+	// Set display Rotation
+	display.setRotation(2);
+	
+	// Clear display
 	display.clearDisplay();
 	display.refresh();
 
