@@ -349,5 +349,105 @@ const uint8_t menu_celciusBitmaps[] PROGMEM =
 	0x0F, 0x80, 0x00, 0x00, //     #####
 };
 
+// Bitmap sizes for battery_4q
+const uint8_t battery_4qWidthPixels = 15;
+const uint8_t battery_4qHeightPixels = 8;
+
+//
+//  Image data for battery_4q
+//
+
+const uint8_t battery_4qBitmaps[] PROGMEM =
+{
+	0x7F, 0xFC, //  #############
+	0x80, 0x04, // #            #
+	0xBF, 0xF6, // # ########## ##
+	0xBF, 0xF2, // # ##########  #
+	0xBF, 0xF2, // # ##########  #
+	0xBF, 0xF6, // # ########## ##
+	0x80, 0x04, // #            #
+	0x7F, 0xFC, //  #############
+};
+
+// Bitmap sizes for battery_1q
+const uint8_t battery_1qWidthPixels = 15;
+const uint8_t battery_1qHeightPixels = 8;
+
+//
+//  Image data for battery_1q
+//
+
+const uint8_t battery_1qBitmaps[] PROGMEM =
+{
+	0x7F, 0xFC, //  #############
+	0x80, 0x04, // #            #
+	0xB0, 0x06, // # ##         ##
+	0xB0, 0x02, // # ##          #
+	0xB0, 0x02, // # ##          #
+	0xB0, 0x06, // # ##         ##
+	0x80, 0x04, // #            #
+	0x7F, 0xFC, //  #############
+};
+
+// Bitmap sizes for battery_2q
+const uint8_t battery_2qWidthPixels = 15;
+const uint8_t battery_2qHeightPixels = 8;
+
+//
+//  Image data for battery_2q
+//
+
+const uint8_t battery_2qBitmaps[] PROGMEM =
+{
+	0x7F, 0xFC, //  #############
+	0x80, 0x04, // #            #
+	0xBE, 0x06, // # #####      ##
+	0xBE, 0x02, // # #####       #
+	0xBE, 0x02, // # #####       #
+	0xBE, 0x06, // # #####      ##
+	0x80, 0x04, // #            #
+	0x7F, 0xFC, //  #############
+};
+
+// Bitmap sizes for battery_3q
+const uint8_t battery_3qWidthPixels = 15;
+const uint8_t battery_3qHeightPixels = 8;
+
+//
+//  Image data for battery_3q
+//
+
+const uint8_t battery_3qBitmaps[] PROGMEM =
+{
+	0x7F, 0xFC, //  #############
+	0x80, 0x04, // #            #
+	0xBF, 0xC6, // # ########   ##
+	0xBF, 0xC2, // # ########    #
+	0xBF, 0xC2, // # ########    #
+	0xBF, 0xC6, // # ########   ##
+	0x80, 0x04, // #            #
+	0x7F, 0xFC, //  #############
+};
+
+// Bitmap sizes for battery_chrging
+const uint8_t battery_chrgingWidthPixels = 15;
+const uint8_t battery_chrgingHeightPixels = 8;
+
+//
+//  Image data for battery_chrging
+//
+
+const uint8_t battery_chrgingBitmaps[] PROGMEM =
+{
+	0x7F, 0xFC, //  #############
+	0xF8, 0x3C, // #####     ####
+	0xF8, 0x06, // #####        ##
+	0x80, 0x3E, // #         #####
+	0x80, 0x3E, // #         #####
+	0xF8, 0x06, // #####        ##
+	0xF8, 0x3C, // #####     ####
+	0x7F, 0xFC, //  #############
+};
+
 
 #endif

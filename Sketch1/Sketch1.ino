@@ -34,7 +34,8 @@ volatile boolean rtcFired = false; //variables in ISR need to be volatile
 volatile boolean pinValM = false;
 volatile boolean pinValD = false;
 volatile boolean pinValU = false;
-
+volatile boolean battCharging = false;
+volatile boolean usbPluggedIn = false;
 
 void enableInterrupts()
 {
@@ -83,8 +84,30 @@ void buttonISR_D() //ISR for Down button presses
 void RTC_int() //ISR for RTC interrupt every minute
 {
 	disableInterrupts();
-	//rtcRead = !rtcRead;
 	rtcFired = true;
+	enableInterrupts();
+}
+
+void BattCharging_int_high() // Battery is charged
+{
+	// See description on BattCharging_int_low()
+	disableInterrupts();
+	//detachInterrupt(digitalPinToInterrupt(BATTERY_STATUS));
+	attachInterrupt(digitalPinToInterrupt(BATTERY_STATUS), BattCharging_int_low, LOW); // Generate interrupt when charging
+	battCharging = false;
+	enableInterrupts();
+}
+
+void BattCharging_int_low() // Battery is charging
+{
+	disableInterrupts();
+	// This may look strange but this is to overcome the battery status pin pulling the interrupt
+	// pin LOW.  This type of interrupt will continue to fire and locks the processor.  To handle
+	// this I have removed the interrupt and changed it to a HIGH level.  While the level is LOW
+	// no interrupt occurs.
+	//detachInterrupt(digitalPinToInterrupt(BATTERY_STATUS));
+	attachInterrupt(digitalPinToInterrupt(BATTERY_STATUS), BattCharging_int_high, HIGH); // Generate interrupt when charging
+	battCharging = true;
 	enableInterrupts();
 }
 
@@ -124,6 +147,18 @@ void enableWire(void)
 void turn_off_bod33(void)
 {
 	SYSCTRL->BOD33.reg = 0;
+}
+
+boolean isBatteryCharging()
+{
+	return battCharging;
+}
+
+boolean isUSBPluggedIn()
+{
+	int status = analogRead(POWER_SENSE);
+	usbPluggedIn = (status > 100);
+	return usbPluggedIn;
 }
 
 void configureInternalDFLL()
@@ -202,6 +237,9 @@ void initializePins()
 	pinMode(UBUT, INPUT_PULLUP);
 	pinMode(DBUT, INPUT_PULLUP);
 	pinMode(RTC_INT, INPUT_PULLUP); // RTC Interrupt
+	pinMode(BATTERY_STATUS, INPUT_PULLUP); // Battery status
+	pinMode(POWER_SENSE, INPUT); // Sense power
+	pinMode(BATTERY_LEVEL, INPUT); // Battery Level
 
 	// Set LED pin to output.
 	pinMode(LED, OUTPUT);
@@ -234,6 +272,7 @@ void initializeRTC()
 	attachInterrupt(digitalPinToInterrupt(UBUT), buttonISR_U, LOW); // when button C is pressed display
 	attachInterrupt(digitalPinToInterrupt(DBUT), buttonISR_D, LOW); // when button C is pressed display battery status
 	attachInterrupt(digitalPinToInterrupt(RTC_INT), RTC_int, LOW); // RTC Interrupt
+	attachInterrupt(digitalPinToInterrupt(BATTERY_STATUS), BattCharging_int_low, LOW); // Generate interrupt when charging
 
 	// Set RTC to interrupt every second for now just to make sure it works.
 	// Will finally set to one minute.
@@ -265,8 +304,13 @@ void sleepProcessor()
 	// Clear the alarm interrupt in the RTC, else we will never wake up from sleep.
 	// Very strange happening that only exhibits self when interrupt trigger is LOW.
 	// and we want to deepsleep.
-	uint8_t stat = ds3232RTC.alarm(ALARM_2);
-
+#ifdef EVERY_SECOND
+	ds3232RTC.alarm(ALARM_1);
+#endif
+#ifdef EVERY_MINUTE
+	ds3232RTC.alarm(ALARM_2);
+#endif
+//	uint8_t stat = ds3232RTC.alarm(ALARM_2);
 	// Power down the I2C (SERCOM0) to reduce power while sleeping
 	disableWire();
 
@@ -310,7 +354,7 @@ bool updateDisplay()
 
 		display.refresh();
 	}
-	
+
 	// See if middle button fired and woke up the processor.
 	if (pinValM)
 	{
@@ -340,6 +384,9 @@ bool updateDisplay()
 
 void setup()
 {
+//	Serial.begin(115200);
+//	delay(10000);
+	
 	turn_off_bod33();
 	configureInternalDFLL();
 	
@@ -381,6 +428,8 @@ void loop()
 {
 	while (1)
 	{
+		digitalWrite(LED, HIGH);
+		
 		// Before we sleep set the VCOM to external, the 1Hz VCOM signal
 		digitalWrite(DISPLAY_EXTMODE, HIGH); // switch VCOM to external
 
@@ -408,6 +457,8 @@ void loop()
 			//delay(100);
 		//}
 		
+		digitalWrite(LED, LOW);
+
 		updateDisplay();
 	}
 }

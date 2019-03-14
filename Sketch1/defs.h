@@ -7,6 +7,11 @@
 #define DISPLAY_SS 23
 #define DISPLAY_EXTMODE 28
 
+// Charging = 0; Charged = 1
+// PA05 (Pin 6)
+#define BATTERY_STATUS 5
+#define POWER_SENSE 7
+#define BATTERY_LEVEL 2
 
 // Button pins
 #define LED 6

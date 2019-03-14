@@ -20,6 +20,7 @@ public:
 	TimeDateDisplay(Adafruit_SharpMem& display);
 	void displayDateTime(tmElements_t currTime);
 	void displayTemp(float temp);
+	void displayBatteryLevel(float voltage);
 	void setTemp(float temp);
 	void setFont(const GFXfont* font);
 	void setDateFont(const GFXfont* font);

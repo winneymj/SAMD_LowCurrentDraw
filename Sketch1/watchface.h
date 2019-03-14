@@ -27,7 +27,7 @@ private:
 	bool _invert;
 	Calendar _calendar;
 	TimeDateDisplay _timeDate;
-
+	float _avgBattLevel;
 };
 
 

@@ -24,12 +24,16 @@
 #include "CalendarSettingsMenu.h"
 #include "GlobalSettings.h"
 
+#define scalar1 0.1
+#define scalar2 0.9
+
 WatchFace::WatchFace(Adafruit_SharpMem& display, DS3232RTC& ds3232RTC) : 
 	_display(display),
 	_ds3232RTC(ds3232RTC),
 	_invert(false),
 	_calendar(Calendar(display)),
-	_timeDate(TimeDateDisplay(display))
+	_timeDate(TimeDateDisplay(display)),
+	_avgBattLevel(4.0)
 {
 }
 
@@ -68,11 +72,30 @@ void WatchFace::displayTime()
 	_timeDate.setDateFont(&courbd6pt7b);
 	_timeDate.displayDateTime(currTime);
 	
-//	displayTime(currTime);
-//	displayLongDate(currTime);
-
 	// Display the temperature
 	_timeDate.setTempFont(&courbd6pt7b);
 	_timeDate.setTempDegreeFont(&cour6pt8bDegree);
 	_timeDate.displayTemp(temp);
+
+	// Display the battery level
+	// Average the battery level
+	float measuredvbat = analogRead(BATTERY_LEVEL);
+	measuredvbat *= 2;    // we divided by 2, so multiply back
+	measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+	measuredvbat /= 1024; // convert to voltage
+	static boolean first_sample = false;
+	
+	if (first_sample)
+	{
+		_avgBattLevel = measuredvbat;
+		first_sample = false;
+	}
+	else
+	{
+		_avgBattLevel = (measuredvbat * scalar1) + (_avgBattLevel * scalar2);
+	}
+	_timeDate.setTempFont(&courbd6pt7b);
+	_timeDate.setTempDegreeFont(&cour6pt8bDegree);
+	_timeDate.displayBatteryLevel(_avgBattLevel);
+
 }

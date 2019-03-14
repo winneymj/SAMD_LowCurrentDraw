@@ -19,6 +19,9 @@
 #include "stringUtils.h"
 #include "timeDateDisplay.h"
 #include "GlobalSettings.h"
+#include "icons.h"
+
+extern boolean battCharging;
 
 TimeDateDisplay::TimeDateDisplay(Adafruit_SharpMem& display) : _display(display), _font(NULL)
 {
@@ -113,3 +116,33 @@ void TimeDateDisplay::displayTemp(float temp)
 	displayLocalTemp((_tempType == fahrenheit) ? CtoF(temp) : temp);
 }
 
+void TimeDateDisplay::displayBatteryLevel(float voltage)
+{
+	_display.setTextSize(1);
+	_display.setFont(_tempFont);
+	_display.setTextColor(GlobalSettings::_inverted ? WHITE: BLACK, GlobalSettings::_inverted ? BLACK : WHITE);
+
+	_display.setCursor(5, 8);
+	char tempBuff[8] = {0};
+	sprintf_P(tempBuff, PSTR("%d.%02d"), (int)voltage, (int)(voltage * 100.0) % 100);
+	_display.print(tempBuff);
+
+	const uint8_t *bitmap = battery_1qBitmaps;
+	// See if we are charging and change the icon
+	if (battCharging)
+	{
+		bitmap = battery_chrgingBitmaps;
+	}
+	else
+	{
+		// Display Icon
+		if (voltage >= 3.7)
+			bitmap = battery_4qBitmaps;
+		else if (voltage >= 3.5)
+			bitmap = battery_3qBitmaps;
+		else if (voltage >= 3.3)
+			bitmap = battery_2qBitmaps;
+	}
+	
+	_display.drawBitmap(40, 2, bitmap, battery_4qWidthPixels, battery_4qHeightPixels, GlobalSettings::_inverted ? WHITE : BLACK);
+}
