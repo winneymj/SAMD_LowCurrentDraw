@@ -92,10 +92,11 @@ void BattCharging_int_high() // Battery is charged
 {
 	// See description on BattCharging_int_low()
 	disableInterrupts();
-	//detachInterrupt(digitalPinToInterrupt(BATTERY_STATUS));
 	attachInterrupt(digitalPinToInterrupt(BATTERY_STATUS), BattCharging_int_low, LOW); // Generate interrupt when charging
 	battCharging = false;
 	enableInterrupts();
+	digitalWrite(RTC_INT, LOW); // Generate interrupt to wake up and update the battery icon
+	digitalWrite(RTC_INT, HIGH); // Generate interrupt to wake up and update the battery icon
 }
 
 void BattCharging_int_low() // Battery is charging
@@ -105,10 +106,11 @@ void BattCharging_int_low() // Battery is charging
 	// pin LOW.  This type of interrupt will continue to fire and locks the processor.  To handle
 	// this I have removed the interrupt and changed it to a HIGH level.  While the level is LOW
 	// no interrupt occurs.
-	//detachInterrupt(digitalPinToInterrupt(BATTERY_STATUS));
 	attachInterrupt(digitalPinToInterrupt(BATTERY_STATUS), BattCharging_int_high, HIGH); // Generate interrupt when charging
 	battCharging = true;
 	enableInterrupts();
+	digitalWrite(RTC_INT, LOW); // Generate interrupt to wake up and update the battery icon
+	digitalWrite(RTC_INT, HIGH); // Generate interrupt to wake up and update the battery icon
 }
 
 #define GENERIC_CLOCK_GENERATOR_MAIN      (0u)
@@ -428,7 +430,7 @@ void loop()
 {
 	while (1)
 	{
-		digitalWrite(LED, HIGH);
+//		digitalWrite(LED, HIGH);
 		
 		// Before we sleep set the VCOM to external, the 1Hz VCOM signal
 		digitalWrite(DISPLAY_EXTMODE, HIGH); // switch VCOM to external
@@ -457,7 +459,7 @@ void loop()
 			//delay(100);
 		//}
 		
-		digitalWrite(LED, LOW);
+//		digitalWrite(LED, LOW);
 
 		updateDisplay();
 	}
