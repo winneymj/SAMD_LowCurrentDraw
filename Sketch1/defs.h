@@ -28,6 +28,8 @@
 #define EVERY_MINUTE
 #define SLEEP_PROCESSOR
 
+#define DISPLAY_HR_MODE
+
 #define MENU_MAIN_INDEX     0
 #define MENU_SUB_INDEX      1
 #define MENU_SUB_SUB_INDEX  2

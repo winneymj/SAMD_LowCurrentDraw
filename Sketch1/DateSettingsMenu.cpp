@@ -286,9 +286,14 @@ void DateSettingsMenu::dateUpFunc()
 //----------------------------------------------------------------
 void DateSettingsMenu::saveDateFunc()
 {
+	// Read current hours setting before we overwrite
+	volatile uint8_t hrs = ds3232RTC.readRTC(RTC_HOURS);
+
 	// Write the time.
 	ds3232RTC.write(DateSettingsMenu::_dateDataSet);
-
+	
+	ds3232RTC.writeRTC(RTC_HOURS, hrs);
+	
 	// Change the option text to Saved
 	_menu->createOption(MENU_MAIN_INDEX, OPTION_DATE_SAVE_INDEX, PSTR("Saved"), NULL, DateSettingsMenu::saveDateFunc); // Position 3
 }

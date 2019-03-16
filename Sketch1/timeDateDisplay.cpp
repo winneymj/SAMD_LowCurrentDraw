@@ -21,6 +21,7 @@
 #include "GlobalSettings.h"
 #include "icons.h"
 
+extern DS3232RTC ds3232RTC;
 extern boolean battCharging;
 
 TimeDateDisplay::TimeDateDisplay(Adafruit_SharpMem& display) : _display(display), _font(NULL)
@@ -144,5 +145,17 @@ void TimeDateDisplay::displayBatteryLevel(float voltage)
 			bitmap = battery_2qBitmaps;
 	}
 	
-	_display.drawBitmap(40, 2, bitmap, battery_4qWidthPixels, battery_4qHeightPixels, GlobalSettings::_inverted ? WHITE : BLACK);
+	_display.drawBitmap(35, 2, bitmap, battery_4qWidthPixels, battery_4qHeightPixels, GlobalSettings::_inverted ? WHITE : BLACK);
+
+#ifdef DISPLAY_HR_MODE
+	_display.setTextSize(1);
+	_display.setFont(_tempFont);
+	_display.setTextColor(GlobalSettings::_inverted ? WHITE: BLACK, GlobalSettings::_inverted ? BLACK : WHITE);
+
+	_display.setCursor(50, 8);
+	tempBuff[8] = {0};
+	eHR1224 hr1224 = (ds3232RTC.readRTC(RTC_HOURS) & _BV(HR1224)) ? eHR1224::HR12 : eHR1224::HR24; // Hr
+	sprintf_P(tempBuff, PSTR("%s"), (hr1224 == eHR1224::HR12) ? "12" : "24");
+	_display.print(tempBuff);
+#endif
 }
