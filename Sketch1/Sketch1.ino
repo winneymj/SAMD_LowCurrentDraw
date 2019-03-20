@@ -35,7 +35,7 @@ volatile boolean pinValM = false;
 volatile boolean pinValD = false;
 volatile boolean pinValU = false;
 volatile boolean battCharging = false;
-volatile boolean usbPluggedIn = false;
+volatile boolean flipflop = false;
 
 void enableInterrupts()
 {
@@ -94,9 +94,10 @@ void BattCharging_int_high() // Battery is charged
 	disableInterrupts();
 	attachInterrupt(digitalPinToInterrupt(BATTERY_STATUS), BattCharging_int_low, LOW); // Generate interrupt when charging
 	battCharging = false;
+//	digitalWrite(LED, LOW);
 	enableInterrupts();
-	digitalWrite(RTC_INT, LOW); // Generate interrupt to wake up and update the battery icon
-	digitalWrite(RTC_INT, HIGH); // Generate interrupt to wake up and update the battery icon
+	//digitalWrite(RTC_INT, LOW); // Generate interrupt to wake up and update the battery icon
+	//digitalWrite(RTC_INT, HIGH); // Generate interrupt to wake up and update the battery icon
 }
 
 void BattCharging_int_low() // Battery is charging
@@ -108,9 +109,10 @@ void BattCharging_int_low() // Battery is charging
 	// no interrupt occurs.
 	attachInterrupt(digitalPinToInterrupt(BATTERY_STATUS), BattCharging_int_high, HIGH); // Generate interrupt when charging
 	battCharging = true;
+//	digitalWrite(LED, HIGH);
 	enableInterrupts();
-	digitalWrite(RTC_INT, LOW); // Generate interrupt to wake up and update the battery icon
-	digitalWrite(RTC_INT, HIGH); // Generate interrupt to wake up and update the battery icon
+	//digitalWrite(RTC_INT, LOW); // Generate interrupt to wake up and update the battery icon
+	//digitalWrite(RTC_INT, HIGH); // Generate interrupt to wake up and update the battery icon
 }
 
 #define GENERIC_CLOCK_GENERATOR_MAIN      (0u)
@@ -154,13 +156,6 @@ void turn_off_bod33(void)
 boolean isBatteryCharging()
 {
 	return battCharging;
-}
-
-boolean isUSBPluggedIn()
-{
-	int status = analogRead(POWER_SENSE);
-	usbPluggedIn = (status > 100);
-	return usbPluggedIn;
 }
 
 void configureInternalDFLL()
@@ -386,7 +381,7 @@ bool updateDisplay()
 
 void setup()
 {
-//	Serial.begin(115200);
+	Serial.begin(115200);
 //	delay(10000);
 	
 	turn_off_bod33();
@@ -431,7 +426,7 @@ void loop()
 	while (1)
 	{
 //		digitalWrite(LED, HIGH);
-		
+Serial.println("BS");
 		// Before we sleep set the VCOM to external, the 1Hz VCOM signal
 		digitalWrite(DISPLAY_EXTMODE, HIGH); // switch VCOM to external
 

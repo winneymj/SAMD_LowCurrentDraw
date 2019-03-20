@@ -32,8 +32,8 @@ private:
 	void displayLongDate(tmElements_t currTime);
 	void displayTime(tmElements_t currTime);
 	void displayLocalTemp(float temp);
+	boolean isUSBPluggedIn();
 
-	
 private:
 	Adafruit_SharpMem& _display;
 	const GFXfont* _font;

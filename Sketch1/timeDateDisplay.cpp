@@ -114,8 +114,15 @@ void TimeDateDisplay::displayLocalTemp(float temp)
 
 void TimeDateDisplay::displayTemp(float temp)
 {
-	displayLocalTemp((_tempType == fahrenheit) ? CtoF(temp) : temp);
+//	displayLocalTemp((_tempType == fahrenheit) ? CtoF(temp) : temp);
 }
+
+boolean TimeDateDisplay::isUSBPluggedIn()
+{
+	int status = analogRead(POWER_SENSE);
+	return (status > 100);
+}
+
 
 void TimeDateDisplay::displayBatteryLevel(float voltage)
 {
@@ -130,7 +137,7 @@ void TimeDateDisplay::displayBatteryLevel(float voltage)
 
 	const uint8_t *bitmap = battery_1qBitmaps;
 	// See if we are charging and change the icon
-	if (battCharging)
+	if (/*battCharging &&*/ isUSBPluggedIn())
 	{
 		bitmap = battery_chrgingBitmaps;
 	}
@@ -152,10 +159,20 @@ void TimeDateDisplay::displayBatteryLevel(float voltage)
 	_display.setFont(_tempFont);
 	_display.setTextColor(GlobalSettings::_inverted ? WHITE: BLACK, GlobalSettings::_inverted ? BLACK : WHITE);
 
+	float batStat = analogRead(BATTERY_STATUS);
+	batStat *= 3.3;  // Multiply by 3.3V, our reference voltage
+	batStat /= 1024; // convert to voltage
+
+	int status = analogRead(POWER_SENSE);
+	status *= 3.3;  // Multiply by 3.3V, our reference voltage
+	status /= 1024; // convert to voltage
+
 	_display.setCursor(50, 8);
 	tempBuff[8] = {0};
-	eHR1224 hr1224 = (ds3232RTC.readRTC(RTC_HOURS) & _BV(HR1224)) ? eHR1224::HR12 : eHR1224::HR24; // Hr
-	sprintf_P(tempBuff, PSTR("%s"), (hr1224 == eHR1224::HR12) ? "12" : "24");
+//	eHR1224 hr1224 = (ds3232RTC.readRTC(RTC_HOURS) & _BV(HR1224)) ? eHR1224::HR12 : eHR1224::HR24; // Hr
+	sprintf_P(tempBuff, PSTR("%d.%02d, %d"),  (int)batStat, (int)(batStat * 100.0) % 100, isUSBPluggedIn());
 	_display.print(tempBuff);
 #endif
+
+	
 }
